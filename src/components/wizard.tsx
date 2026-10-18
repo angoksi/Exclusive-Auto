@@ -7,15 +7,15 @@ import { Field, Input, Select } from '@/components/ui/form';
 import { BODIES, FUELS } from '@/lib/vehicle-options';
 import { cn } from '@/lib/utils';
 
-const REGIONS = [['US', 'САЩ'], ['CA', 'Канада'], ['KR', 'Южна Корея'], ['ANY', 'Нямам предпочитание']];
+const SALES = [['ANY', 'Нямам предпочитание'], ['BUY_NOW', 'Фиксирана цена'], ['AUCTION', 'Търг']];
 const URGENCY = [['asap', 'Възможно най-скоро'], ['2m', 'До 2 месеца'], ['3m+', 'Над 3 месеца — не бързам']];
 const CONDITION = [['clean', 'Без повреди'], ['minor', 'Допустими леки повреди'], ['any', 'Готов съм и за автомобил с повреди']];
 
 export function Wizard({ user }: { user?: { name: string; email: string } | null }) {
   const [step, setStep] = useState(0);
-  const [d, setD] = useState({ budget: 25000, regions: ['ANY'] as string[], bodies: [] as string[], fuels: [] as string[], make: '', yearFrom: '2019', condition: 'clean', urgency: '2m' });
-  const toggle = (k: 'regions' | 'bodies' | 'fuels', v: string) => setD((s) => ({ ...s, [k]: s[k].includes(v) ? s[k].filter((x) => x !== v) : [...s[k], v] }));
-  const steps = ['Бюджет и държава', 'Предпочитания', 'Срок и състояние', 'Контакт'];
+  const [d, setD] = useState({ budget: 25000, sales: ['ANY'] as string[], bodies: [] as string[], fuels: [] as string[], make: '', yearFrom: '2019', condition: 'clean', urgency: '2m' });
+  const toggle = (k: 'sales' | 'bodies' | 'fuels', v: string) => setD((s) => ({ ...s, [k]: s[k].includes(v) ? s[k].filter((x) => x !== v) : [...s[k], v] }));
+  const steps = ['Бюджет и вид покупка', 'Предпочитания', 'Срок и състояние', 'Контакт'];
   const Chip = ({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) => (
     <button type="button" onClick={onClick} aria-pressed={on} className={cn('rounded-full border px-4 py-2 text-sm font-semibold transition-colors', on ? 'border-navy-900 bg-navy-900 text-white' : 'border-line bg-paper hover:bg-mist')}>{children}</button>
   );
@@ -33,7 +33,7 @@ export function Wizard({ user }: { user?: { name: string; email: string } | null
           <Field label={`Бюджет до крайна цена в България: ${new Intl.NumberFormat('bg-BG').format(d.budget)} €`}>
             <input type="range" min={8000} max={80000} step={1000} value={d.budget} onChange={(e) => setD({ ...d, budget: +e.target.value })} className="w-full accent-[var(--color-copper-600)]" />
           </Field>
-          <div><p className="mb-2 text-xs font-semibold text-navy-900/80">Държава на произход</p><div className="flex flex-wrap gap-2">{REGIONS.map(([v, l]) => <Chip key={v} on={d.regions.includes(v)} onClick={() => toggle('regions', v)}>{l}</Chip>)}</div></div>
+          <div><p className="mb-2 text-xs font-semibold text-navy-900/80">Вид покупка</p><div className="flex flex-wrap gap-2">{SALES.map(([v, l]) => <Chip key={v} on={d.sales.includes(v)} onClick={() => toggle('sales', v)}>{l}</Chip>)}</div></div>
         </div>
       )}
       {step === 1 && (
@@ -54,7 +54,7 @@ export function Wizard({ user }: { user?: { name: string; email: string } | null
       )}
       {step === 3 && (
         <div>
-          <p className="mb-5 rounded-md bg-mist p-4 text-sm text-ink/80">Бюджет до <strong>{new Intl.NumberFormat('bg-BG').format(d.budget)} €</strong> · {d.regions.map((r) => REGIONS.find((x) => x[0] === r)?.[1]).join(', ')} · {d.bodies.join(', ') || 'всички типове'}</p>
+          <p className="mb-5 rounded-md bg-mist p-4 text-sm text-ink/80">Бюджет до <strong>{new Intl.NumberFormat('bg-BG').format(d.budget)} €</strong> · {d.sales.map((r) => SALES.find((x) => x[0] === r)?.[1]).join(', ')} · {d.bodies.join(', ') || 'всички типове'}</p>
           <InquiryForm type="WIZARD" payload={d} user={user} submitLabel="Изпрати заявката" defaultMessage={d.make ? `Търся: ${d.make}.` : ''} />
         </div>
       )}

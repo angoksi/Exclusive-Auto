@@ -14,21 +14,15 @@ type SP = Promise<Record<string, string | string[] | undefined>>;
 
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
   const f = parseFilters(await searchParams);
-  const where = f.region === 'kr' ? 'от Южна Корея' : f.region === 'usca' ? 'от САЩ и Канада' : f.region === 'us' ? 'от САЩ' : f.region === 'ca' ? 'от Канада' : 'за внос';
+  const where = 'от Южна Корея';
   const what = [f.make, f.model].filter(Boolean).join(' ') || 'Автомобили';
   return {
     title: `${what} ${where}`,
     description: `Каталог с автомобили ${where}: филтри по марка, модел, година, цена, пробег, състояние и аукционна платформа. Пълна разбивка на крайната цена до България.`,
-    alternates: { canonical: '/catalog' + (f.region ? `?region=${f.region}` : '') },
-    robots: Object.keys(await searchParams).filter((k) => !['region', 'make'].includes(k)).length ? { index: false, follow: true } : undefined,
+    alternates: { canonical: '/catalog' },
+    robots: Object.keys(await searchParams).filter((k) => !['make'].includes(k)).length ? { index: false, follow: true } : undefined,
   };
 }
-
-const TABS = [
-  { v: undefined, label: 'Всички' },
-  { v: 'usca', label: 'САЩ и Канада' },
-  { v: 'kr', label: 'Южна Корея' },
-] as const;
 
 export default async function CatalogPage({ searchParams }: { searchParams: SP }) {
   const raw = await searchParams;
@@ -52,14 +46,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: SP }
         <div className="container-x py-10">
           <p className="eyebrow">Каталог</p>
           <h1 className="mt-2 text-3xl sm:text-4xl">Автомобили за внос</h1>
-          <p className="mt-2 max-w-2xl text-muted">Подбрани обяви от САЩ, Канада и Южна Корея с ясна цена, състояние и данни за търга.</p>
-          <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Регион">
-            {TABS.map((t) => (
-              <Link key={t.label} role="tab" aria-selected={f.region === t.v} href={'/catalog' + toQuery({ region: t.v })} className={cn('rounded-full border px-4 py-2 text-sm font-semibold transition-colors', f.region === t.v ? 'border-navy-900 bg-navy-900 text-white' : 'border-line bg-paper text-navy-900 hover:bg-mist')}>
-                {t.label}
-              </Link>
-            ))}
-          </div>
+          <p className="mt-2 max-w-2xl text-muted">Подбрани обяви от Южна Корея с ясна цена, състояние и вид продажба — фиксирана цена или търг.</p>
         </div>
       </section>
 

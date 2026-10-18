@@ -16,8 +16,8 @@ const links = [
 ];
 
 export const catalogMenu = [
-  { href: '/catalog?region=usca', label: 'САЩ и Канада', hint: 'Copart, IAAI и др.' },
-  { href: '/catalog?region=kr', label: 'Южна Корея', hint: 'Encar, K Car, Autowini' },
+  { href: '/catalog?saleType=BUY_NOW', label: 'Фиксирана цена', hint: 'Готови за покупка автомобили' },
+  { href: '/catalog?saleType=AUCTION', label: 'Търгове', hint: 'Наддаване на корейски платформи' },
   { href: '/find-my-car', label: 'Намери моя автомобил', hint: 'Персонализирано търсене' },
 ];
 
@@ -27,7 +27,7 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
       <div className="hidden bg-navy-900 text-[12.5px] text-white/80 md:block">
         <div className="container-x flex h-9 items-center justify-between">
-          <span>Внос от САЩ, Канада и Южна Корея — с прозрачна цена и проследяване</span>
+          <span>Директен внос от Южна Корея — с прозрачна цена и проследяване</span>
           <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 hover:text-white">
             <Phone className="size-3.5" /> {site.phone} · {site.hours}
           </a>

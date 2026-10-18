@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Info } from 'lucide-react';
 import { InquiryForm } from '@/components/inquiry-form';
 import { Field, Input, Select } from '@/components/ui/form';
-import { calculateImport, platformKeyFor, REGION_CURRENCY, type CalcInput, type PricingConfig } from '@/lib/pricing';
+import { calculateImport, platformKeyFor, type CalcInput, type PricingConfig } from '@/lib/pricing';
 import { eur, money } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { Region } from '@/generated/prisma/enums';
@@ -15,13 +15,13 @@ const GROUPS = [
   { id: 'service', label: 'Услуги', color: 'bg-copper-300' },
 ] as const;
 
-export type CalcPreset = { region?: Region; price?: number; platform?: string; vehicleSlug?: string; vehicleTitle?: string };
+export type CalcPreset = { price?: number; currency?: string; platform?: string; vehicleSlug?: string; vehicleTitle?: string };
 
 export function ImportCalculator({ config, preset = {}, user }: { config: PricingConfig; preset?: CalcPreset; user?: { name: string; email: string } | null }) {
-  const region0: Region = preset.region ?? 'US';
-  const [region, setRegion] = useState<Region>(region0);
-  const [price, setPrice] = useState(preset.price ?? 15000);
-  const [platform, setPlatform] = useState(preset.platform ?? platformKeyFor('COPART', region0));
+  const region: Region = 'KR';
+  const [currency, setCurrency] = useState(preset.currency ?? 'KRW');
+  const [price, setPrice] = useState(preset.price ?? 20_000_000);
+  const [platform, setPlatform] = useState(preset.platform ?? platformKeyFor('ENCAR', region));
   const [manualFee, setManualFee] = useState(false);
   const [fee, setFee] = useState(0);
   const [manualInland, setManualInland] = useState(false);
@@ -34,7 +34,6 @@ export function ImportCalculator({ config, preset = {}, user }: { config: Pricin
   const [extras, setExtras] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
 
-  const currency = REGION_CURRENCY[region];
   const input: CalcInput = {
     region, price: Number(price) || 0, currency, platform, destination, insurance, originProof, extras,
     auctionFeeOverride: manualFee ? Number(fee) || 0 : null,
@@ -43,27 +42,22 @@ export function ImportCalculator({ config, preset = {}, user }: { config: Pricin
   };
   const res = useMemo(() => calculateImport(input, config), [input, config]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const platforms = region === 'KR' ? ['KOREA'] : ['COPART', 'IAAI', 'OTHER'];
-  const changeRegion = (r: Region) => {
-    setRegion(r);
-    setPlatform(r === 'KR' ? 'KOREA' : platform === 'KOREA' ? 'COPART' : platform);
-    setPrice(r === 'KR' ? 20_000_000 : 15000);
-  };
+  const platforms = ['KOREA', 'OTHER'];
   const groupSum = (g: string) => res.lines.filter((l) => l.group === g).reduce((s, l) => s + l.amount, 0);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
       <div className="card space-y-5 p-6">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Държава на произход">
-            <Select value={region} onChange={(e) => changeRegion(e.target.value as Region)}>
-              <option value="US">САЩ</option><option value="CA">Канада</option><option value="KR">Южна Корея</option>
+          <Field label="Валута на цената">
+            <Select value={currency} onChange={(e) => setCurrency(e.target.value)}>
+              <option value="KRW">Южнокорейски вон (₩)</option><option value="USD">Щатски долар ($)</option><option value="EUR">Евро (€)</option>
             </Select>
           </Field>
           <Field label={`Покупна цена (${currency})`}>
-            <Input type="number" min={0} step={region === 'KR' ? 100000 : 100} value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+            <Input type="number" min={0} step={currency === 'KRW' ? 100000 : 100} value={price} onChange={(e) => setPrice(Number(e.target.value))} />
           </Field>
-          <Field label="Платформа / източник">
+          <Field label="Източник на автомобила">
             <Select value={platform} onChange={(e) => setPlatform(e.target.value)}>
               {platforms.map((k) => <option key={k} value={k}>{config.auctionFees[k]?.label ?? k}</option>)}
             </Select>
@@ -76,14 +70,14 @@ export function ImportCalculator({ config, preset = {}, user }: { config: Pricin
         </div>
 
         <div className="space-y-4 border-t border-line pt-5">
-          <Override label={`Аукционни такси (${currency})`} manual={manualFee} onToggle={setManualFee} value={fee} onChange={setFee} auto={`≈ ${money(Math.round(res.lines.find((l) => l.key === 'auction')!.amount / res.currencyRate), currency)}`} />
+          <Override label={`Такси на платформата (${currency})`} manual={manualFee} onToggle={setManualFee} value={fee} onChange={setFee} auto={`≈ ${money(Math.round(res.lines.find((l) => l.key === 'auction')!.amount / res.currencyRate), currency)}`} />
           <Override label="Транспорт до пристанище (€)" manual={manualInland} onToggle={setManualInland} value={inland} onChange={setInland} auto={eur(res.lines.find((l) => l.key === 'inland')!.amount)} />
           <Override label="Морски транспорт (€)" manual={manualSea} onToggle={setManualSea} value={sea} onChange={setSea} auto={eur(res.lines.find((l) => l.key === 'sea')!.amount)} />
         </div>
 
         <div className="space-y-3 border-t border-line pt-5">
           <Check checked={insurance} onChange={setInsurance} label={`Застраховка на товара (${config.insuranceRate}% от стойността)`} />
-          {region === 'KR' && <Check checked={originProof} onChange={setOriginProof} label="Налично доказателство за корейски произход (преференциално мито по ССТ ЕС–Корея)" />}
+          <Check checked={originProof} onChange={setOriginProof} label="Налично доказателство за корейски произход (преференциално мито по ССТ ЕС–Корея)" />
         </div>
 
         <fieldset className="space-y-3 border-t border-line pt-5">

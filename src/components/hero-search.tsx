@@ -22,9 +22,9 @@ export function HeroSearch({ makeModels }: { makeModels: Record<string, string[]
   return (
     <form onSubmit={submit} className="rounded-lg bg-paper p-4 shadow-2xl shadow-navy-950/30 sm:p-5" aria-label="Бързо търсене">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Държава на произход">
-          <Select name="region" defaultValue="">
-            <option value="">Всички държави</option><option value="us">САЩ</option><option value="ca">Канада</option><option value="kr">Южна Корея</option>
+        <Field label="Платформа">
+          <Select name="source" defaultValue="">
+            <option value="">Всички платформи</option><option value="ENCAR">Encar</option><option value="KCAR">K Car</option><option value="AUTOWINI">Autowini</option>
           </Select>
         </Field>
         <Field label="Марка">

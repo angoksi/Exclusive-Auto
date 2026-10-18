@@ -22,20 +22,20 @@ import { latest, makeModelMap, cardInclude } from '@/lib/vehicles';
 export const revalidate = 300;
 
 export default async function Home() {
-  const [makeModels, featured, newest, us, ca, kr, deliveries, reviews, faqs, favs, user, site, counts] = await Promise.all([
+  const [makeModels, featured, newest, fixed, suv, electrified, deliveries, reviews, faqs, favs, user, site, counts] = await Promise.all([
     makeModelMap(),
-    db.vehicle.findMany({ where: { published: true, status: 'AVAILABLE', featured: true }, orderBy: { createdAt: 'desc' }, take: 4, include: cardInclude }),
+    db.vehicle.findMany({ where: { region: 'KR', published: true, status: 'AVAILABLE', featured: true }, orderBy: { createdAt: 'desc' }, take: 4, include: cardInclude }),
     latest(8),
-    latest(4, { region: 'US' }),
-    latest(4, { region: 'CA' }),
-    latest(4, { region: 'KR' }),
+    latest(4, { saleType: 'BUY_NOW' }),
+    latest(4, { bodyType: 'SUV' }),
+    latest(4, { fuel: { in: ['Електрически', 'Хибрид', 'Plug-in хибрид'] } }),
     db.completedDelivery.findMany({ orderBy: { deliveredAt: 'desc' }, take: 4 }),
     db.review.findMany({ where: { published: true }, orderBy: { createdAt: 'desc' }, take: 3 }),
     db.faq.findMany({ orderBy: { position: 'asc' }, take: 5 }),
     getFavoriteIds(),
     getUser(),
     getSiteInfo(),
-    db.vehicle.count({ where: { published: true, status: 'AVAILABLE' } }),
+    db.vehicle.count({ where: { region: 'KR', published: true, status: 'AVAILABLE' } }),
   ]);
   const hasHero = fs.existsSync(path.join(/*turbopackIgnore: true*/ process.cwd(), 'public/images/hero.jpg'));
 
@@ -50,9 +50,9 @@ export default async function Home() {
         </div>
         <div className="container-x relative pb-10 pt-16 sm:pt-24 lg:pb-14">
           <Reveal>
-            <p className="eyebrow !text-copper-300">Внос от САЩ · Канада · Южна Корея</p>
+            <p className="eyebrow !text-copper-300">Внос от Южна Корея</p>
             <h1 className="mt-5 max-w-3xl text-[40px] font-extrabold leading-[1.05] !text-white sm:text-6xl lg:text-7xl">Твоят следващ автомобил. <span className="text-copper-300">Без граници.</span></h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-white/75">Внасяме автомобили от САЩ, Канада и Южна Корея — с ясна разбивка на цената, личен консултант и проследяване на всеки етап до предаването.</p>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-white/75">Внасяме автомобили от Южна Корея — с ясна разбивка на цената, личен консултант и проследяване на всеки етап до предаването.</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild variant="copper" size="lg"><Link href="/catalog">Разгледай автомобили</Link></Button>
               <Button asChild variant="light" size="lg"><Link href="/calculator">Получаване на оферта</Link></Button>
@@ -60,7 +60,7 @@ export default async function Home() {
           </Reveal>
           <Reveal delay={0.15} className="mt-14 lg:mt-20"><HeroSearch makeModels={makeModels} /></Reveal>
           <dl className="mt-8 grid max-w-3xl grid-cols-3 gap-6 text-white">
-            {[[String(counts), 'автомобила в каталога'], ['3', 'пазара: САЩ, Канада, Корея'], ['10', 'етапа на проследяване']].map(([n, l]) => (
+            {[[String(counts), 'автомобила в каталога'], ['KR', 'директен внос от Корея'], ['10', 'етапа на проследяване']].map(([n, l]) => (
               <div key={l}><dt className="text-3xl font-extrabold text-copper-300">{n}</dt><dd className="mt-1 text-xs text-white/60 sm:text-sm">{l}</dd></div>
             ))}
           </dl>
@@ -70,9 +70,9 @@ export default async function Home() {
       {/* Markets */}
       <section className="bg-paper py-12">
         <div className="container-x grid gap-4 md:grid-cols-3">
-          {[{ href: '/import/usa', t: 'САЩ', d: 'Copart, IAAI и др.' }, { href: '/import/canada', t: 'Канада', d: 'Copart Canada и дилъри' }, { href: '/import/south-korea', t: 'Южна Корея', d: 'Encar, K Car, Autowini' }].map((m) => (
+          {[{ href: '/catalog?source=ENCAR', t: 'Encar', d: 'Най-голямата корейска платформа за употребявани автомобили' }, { href: '/catalog?source=KCAR', t: 'K Car', d: 'Сертифицирани автомобили с проверка на състоянието' }, { href: '/catalog?source=AUTOWINI', t: 'Autowini', d: 'Експортна платформа с фиксирани цени' }].map((m) => (
             <Link key={m.t} href={m.href} className="group flex items-center justify-between rounded-lg border border-line p-6 transition-colors hover:border-navy-900">
-              <span><span className="block text-xl font-bold text-navy-900">Внос от {m.t}</span><span className="text-sm text-muted">{m.d}</span></span>
+              <span><span className="block text-xl font-bold text-navy-900">{m.t}</span><span className="text-sm text-muted">{m.d}</span></span>
               <ArrowRight className="size-5 text-copper-600 transition-transform group-hover:translate-x-1" />
             </Link>
           ))}
@@ -81,9 +81,9 @@ export default async function Home() {
 
       <VehicleRow eyebrow="Селекция" title="Препоръчани автомобили" text="Подбрани от нашия екип по състояние, цена и ликвидност." href="/catalog" items={featured} favs={favs} />
       <div className="bg-paper"><VehicleRow eyebrow="Ново в каталога" title="Последно добавени" href="/catalog?sort=newest" items={newest} favs={favs} /></div>
-      <VehicleRow eyebrow="САЩ" title="Автомобили от САЩ" href="/catalog?region=us" items={us} favs={favs} />
-      <div className="bg-paper"><VehicleRow eyebrow="Канада" title="Автомобили от Канада" href="/catalog?region=ca" items={ca} favs={favs} /></div>
-      <VehicleRow eyebrow="Южна Корея" title="Автомобили от Южна Корея" href="/catalog?region=kr" items={kr} favs={favs} />
+      <VehicleRow eyebrow="Готови за покупка" title="Автомобили с фиксирана цена" href="/catalog?saleType=BUY_NOW" items={fixed} favs={favs} />
+      <div className="bg-paper"><VehicleRow eyebrow="Най-търсени" title="SUV модели" href="/catalog?bodyType=SUV" items={suv} favs={favs} /></div>
+      <VehicleRow eyebrow="Икономични" title="Хибридни и електрически" href="/catalog?fuel=Електрически" items={electrified} favs={favs} />
 
       {/* Process */}
       <section className="section bg-navy-900 text-white">

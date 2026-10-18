@@ -4,7 +4,7 @@ import { PageHero } from '@/components/page-hero';
 import { db } from '@/lib/db';
 import { dateBg } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Блог — всичко за вноса на автомобили', description: 'Практични статии за цени, мито, ДДС, повреди и избор на автомобил при внос от САЩ, Канада и Южна Корея.', alternates: { canonical: '/blog' } };
+export const metadata: Metadata = { title: 'Блог — всичко за вноса на автомобили', description: 'Практични статии за цени, мито, ДДС, повреди и избор на автомобил при внос от Южна Корея.', alternates: { canonical: '/blog' } };
 export const revalidate = 600;
 
 export default async function Blog() {

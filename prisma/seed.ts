@@ -21,7 +21,7 @@ function demoVin(year: number, i: number) {
 
 type Row = [region: 'US' | 'CA' | 'KR', source: NormalizedVehicle['source'], make: string, model: string, trim: string, year: number, body: string, engine: string, fuel: string, trans: string, drive: string, color: string, hex: string, km: number, bid: number, buyNow: number | null, location: string, damage: string | null, runs: boolean];
 
-const ROWS: Row[] = [
+const ALL_ROWS: Row[] = [
   ['US', 'COPART', 'Tesla', 'Model 3', 'Long Range', 2021, 'sedan', 'Двоен електродвигател, 75 kWh', 'Електрически', 'Автоматична', '4x4 / AWD', 'Бял', 'e9ecef', 61000, 14200, null, 'Houston, TX', 'Предна част', true],
   ['US', 'COPART', 'BMW', 'X5', 'xDrive40i', 2019, 'suv', '3.0L R6 Turbo, 335 к.с.', 'Бензин', 'Автоматична', '4x4 / AWD', 'Черен', '16181d', 78000, 17800, null, 'Dallas, TX', 'Задна част', true],
   ['US', 'IAAI', 'Ford', 'F-150', 'Lariat SuperCrew', 2020, 'pickup', '3.5L V6 EcoBoost, 375 к.с.', 'Бензин', 'Автоматична', '4x4 / AWD', 'Сив', '6c7078', 69000, 21500, 32900, 'Atlanta, GA', null, true],
@@ -62,6 +62,8 @@ const ROWS: Row[] = [
   ['KR', 'AUTOWINI', 'Genesis', 'GV80', '3.0D AWD', 2021, 'suv', '3.0L Diesel, 278 к.с.', 'Дизел', 'Автоматична', '4x4 / AWD', 'Сребрист', 'aaaeb5', 49000, 0, 43900000, 'Busan', null, true],
 ];
 
+const ROWS = ALL_ROWS.filter((r) => r[0] === 'KR');
+
 const BODY_BG: Record<string, string> = { sedan: 'Седан', suv: 'SUV', hatch: 'Хечбек', wagon: 'Комби', coupe: 'Купе', pickup: 'Пикап', van: 'Ван' };
 const DAMAGE_TXT: Record<string, string> = {
   'Предна част': 'Удар в предната част — повреди по броня, капак и фарове. Окачването подлежи на проверка при огледа.',
@@ -96,13 +98,13 @@ async function main() {
     const isKR = region === 'KR';
     const currency = isKR ? 'KRW' : region === 'CA' ? 'CAD' : 'USD';
     const vin = demoVin(year, i);
-    const saleType = buyNow && !damage ? 'BUY_NOW' : 'AUCTION';
+    const saleType = i % 5 === 0 ? 'AUCTION' : 'BUY_NOW';
     const platform = { COPART: 'Copart', IAAI: 'IAAI', ENCAR: 'Encar', KCAR: 'K Car', AUTOWINI: 'Autowini', OTHER: 'Друг' }[source];
     const images = [0, 1, 2, 3].map((v) => `/api/demo-image/${body}/${hex}/${v}`);
     const v: NormalizedVehicle = {
       source, sourceId: `DEMO-${i}`, region, make, model, trim, year, vin, lotNumber: isKR ? undefined : String(40000000 + i * 8123), platform,
-      saleType, currency, currentBid: isKR ? undefined : bid, buyNowPrice: buyNow ?? undefined,
-      auctionDate: saleType === 'AUCTION' && !isKR ? new Date(Date.now() + (2 + Math.floor(rnd() * 12)) * day) : undefined,
+      saleType, currency, currentBid: saleType === 'AUCTION' ? Math.round((buyNow ?? 0) * 0.9) : undefined, buyNowPrice: buyNow ?? undefined,
+      auctionDate: saleType === 'AUCTION' ? new Date(Date.now() + (2 + Math.floor(rnd() * 12)) * day) : undefined,
       location, country: isKR ? 'Южна Корея' : region === 'CA' ? 'Канада' : 'САЩ',
       odometerKm: km, engine, fuel, transmission: trans, drive, bodyType: BODY_BG[body], color,
       condition: damage ? (damage === 'Вода/наводнение' ? 'SALVAGE' : 'DAMAGED') : isKR ? 'EXCELLENT' : 'GOOD',
@@ -128,41 +130,41 @@ async function main() {
   console.log('Съдържание…');
   await db.faq.createMany({
     data: [
-      ['Колко време отнема вносът?', 'Обичайно между 6 и 10 седмици от САЩ и Канада и между 5 и 8 седмици от Южна Корея. Сроковете зависят от маршрута, графика на корабите и митническата обработка. Всяка поръчка получава ориентировъчна дата, която актуализираме при промяна.'],
+      ['Колко време отнема вносът?', 'Обичайно между 5 и 8 седмици от Южна Корея. Сроковете зависят от маршрута, графика на корабите и митническата обработка. Всяка поръчка получава ориентировъчна дата, която актуализираме при промяна.'],
       ['Как се формира крайната цена?', 'Цената включва стойността на автомобила, аукционните такси, транспорта до пристанище, международния транспорт, застраховката, митото, ДДС, митническите и пристанищните такси и нашата комисиона. Калкулаторът ни показва всеки компонент поотделно.'],
       ['Мога ли да огледам автомобила преди покупка?', 'Предоставяме подробен фото и видеоотчет. По желание организираме независима инспекция на място чрез партньорски сервиз.'],
-      ['Какви са условията за автомобили с повреди?', 'Автомобилите с повреди се продават „както са“. Преди наддаване описваме видимите повреди и ориентировъчна цена за възстановяване. Окончателното решение е ваше.'],
+      ['Фиксирана цена или търг?', 'Повечето корейски автомобили се предлагат с фиксирана цена от дилър или платформа. При търг цената зависи от наддаването — преди да наддаваме, договаряме с вас максимален таван.'],
       ['Има ли гаранция за цената от калкулатора?', 'Калкулаторът дава ориентировъчна оценка. Окончателната цена се потвърждава с писмена оферта, след като са известни точната тарифна класификация, курсовете и таксите към датата на сделката.'],
       ['Как плащам?', 'Плащането се извършва по банков път след подписване на договор. Не изискваме плащане преди да получите писмена оферта.'],
     ].map(([question, answer], position) => ({ question, answer, position })),
   });
   await db.review.createMany({
     data: [
-      { author: 'Примерен клиент А.', city: 'София', text: 'Примерен отзив: ясна комуникация на всеки етап и точна разбивка на цената още преди покупката.', vehicle: 'Tesla Model 3', isDemo: true },
+      { author: 'Примерен клиент А.', city: 'София', text: 'Примерен отзив: ясна комуникация на всеки етап и точна разбивка на цената още преди покупката.', vehicle: 'Hyundai Ioniq 5', isDemo: true },
       { author: 'Примерен клиент Б.', city: 'Пловдив', text: 'Примерен отзив: автомобилът пристигна в обявения срок, а документите бяха подготвени без излишни грижи.', vehicle: 'Hyundai Tucson', isDemo: true },
-      { author: 'Примерен клиент В.', city: 'Варна', text: 'Примерен отзив: консултантът обясни рисковете при автомобил с повреди и ми помогна да взема спокойно решение.', vehicle: 'Ford F-150', isDemo: true },
+      { author: 'Примерен клиент В.', city: 'Варна', text: 'Примерен отзив: консултантът обясни ясно разликата между фиксирана цена и търг и ми помогна да взема спокойно решение.', vehicle: 'Genesis GV70', isDemo: true },
     ],
   });
   await db.completedDelivery.createMany({
     data: [
-      { title: 'Tesla Model 3 Long Range', year: 2021, origin: 'US', days: 52, city: 'София', isDemo: true, deliveredAt: new Date(Date.now() - 20 * day) },
+      { title: 'Hyundai Ioniq 5', year: 2022, origin: 'KR', days: 52, city: 'София', isDemo: true, deliveredAt: new Date(Date.now() - 20 * day) },
       { title: 'Hyundai Tucson Inspiration', year: 2022, origin: 'KR', days: 44, city: 'Пловдив', isDemo: true, deliveredAt: new Date(Date.now() - 35 * day) },
-      { title: 'Toyota RAV4 Hybrid', year: 2022, origin: 'CA', days: 61, city: 'Варна', isDemo: true, deliveredAt: new Date(Date.now() - 50 * day) },
+      { title: 'Kia Sportage Hybrid', year: 2022, origin: 'KR', days: 47, city: 'Варна', isDemo: true, deliveredAt: new Date(Date.now() - 50 * day) },
       { title: 'Genesis GV70', year: 2022, origin: 'KR', days: 47, city: 'Бургас', isDemo: true, deliveredAt: new Date(Date.now() - 70 * day) },
     ],
   });
   await db.blogPost.createMany({
     data: [
       { slug: 'kak-se-formira-cenata-na-vnosa', title: 'Как се формира крайната цена при внос на автомобил', excerpt: 'От аукционните такси до ДДС — разбираме всеки компонент, за да няма изненади.', published: true, publishedAt: new Date(Date.now() - 12 * day), body: 'Крайната цена на внесен автомобил не е само покупната цена.\n\nПървият компонент е стойността на автомобила. Към нея се добавят аукционните такси, които зависят от платформата и от размера на офертата.\n\nСлед това следва транспортът до пристанището на заминаване и международният превоз. Тези разходи заедно със застраховката формират митническата стойност.\n\nМитото се начислява върху митническата стойност, а ДДС — върху сумата на митническата стойност и митото. Към тях се добавят митнически и пристанищни такси.\n\nНашият калкулатор показва всеки от тези редове поотделно, за да виждате къде отиват парите.' },
-      { slug: 'avtomobili-s-povredi-kakvo-da-znaete', title: 'Автомобили с повреди: какво трябва да знаете преди наддаване', excerpt: 'Практически критерии за оценка на повредите и реалната цена на възстановяване.', published: true, publishedAt: new Date(Date.now() - 25 * day), body: 'Автомобилите с повреди могат да са добра възможност, но изискват трезва оценка.\n\nПървата стъпка е да разберете какъв е основният и вторичният вид повреда и дали автомобилът е в движение.\n\nВтората е реалистичната калкулация за ремонт — части, труд и време за хомологация.\n\nНакрая сравнете общата цена с тази на подобен автомобил без повреди. Ако разликата е малка, рискът може да не си заслужава.' },
+      { slug: 'proverka-na-avtomobil-ot-koreya', title: 'Как да проверим автомобил от Корея преди покупка', excerpt: 'Какво да поискаме от продавача и кои документи да сверим, преди да платим.', published: true, publishedAt: new Date(Date.now() - 25 * day), body: 'Преди покупка поискайте пълен фотоотчет, видео на двигателя и сервизна история.\n\nВ Корея за много автомобили има независими доклади за състоянието и застрахователна история — сверете ги с описанието на продавача.\n\nПроверете пробега, броя на предишните собственици и дали автомобилът е бил участник в застрахователно събитие.\n\nНакрая се уверете, че спецификацията му е подходяща за европейските изисквания.' },
       { slug: 'vnos-ot-yuzhna-koreya-predimstva', title: 'Внос от Южна Корея: предимства и особености', excerpt: 'Богато оборудвани модели, ниски пробези и преференциален режим за произход.', published: true, publishedAt: new Date(Date.now() - 40 * day), body: 'Южна Корея е интересен пазар за автомобили на Hyundai, Kia и Genesis с богата комплектация и сравнително нисък пробег.\n\nСпоразумението за свободна търговия между ЕС и Корея може да даде преференциално мито при доказан произход.\n\nПроверявайте съответствието на спецификацията с европейските изисквания — осветление, емисионен клас и допълнителна хомологация.' },
     ],
   });
 
   console.log('Заявки, оферти, поръчки…');
-  const veh = await db.vehicle.findFirst({ where: { make: 'Tesla' } });
+  const veh = await db.vehicle.findFirst({ where: { make: 'Hyundai' } });
   const inq = await db.inquiry.create({ data: { type: 'VEHICLE', userId: customer.id, vehicleId: veh?.id, name: customer.name, email: customer.email, phone: customer.phone, message: 'Интересувам се от доставка до София. Какъв е срокът?', consentAt: new Date(), status: 'QUOTED' } });
-  await db.offer.create({ data: { inquiryId: inq.id, userId: customer.id, title: 'Tesla Model 3 Long Range — пълна доставка до София', totalEur: 24150, notes: 'Демо оферта. Включва всички такси до предаване.', validUntil: new Date(Date.now() + 7 * day), breakdown: { demo: true } } });
+  await db.offer.create({ data: { inquiryId: inq.id, userId: customer.id, title: 'Hyundai Ioniq 5 — пълна доставка до София', totalEur: 24150, notes: 'Демо оферта. Включва всички такси до предаване.', validUntil: new Date(Date.now() + 7 * day), breakdown: { demo: true } } });
   const order = await db.order.create({ data: { number: 'EAT-2026-0001', userId: customer.id, vehicleTitle: 'Hyundai Tucson Inspiration 2022 (демо)', vin: demoVin(2022, 21), stage: 5, estimatedDelivery: new Date(Date.now() + 24 * day) } });
   const ev = [
     [1, 'Автомобилът е закупен', 'Seoul', 37.57, 126.98, 40],
@@ -174,7 +176,7 @@ async function main() {
   for (const [stage, title, location, lat, lng, ago] of ev) {
     await db.orderEvent.create({ data: { orderId: order.id, stage, title, location, lat, lng, note: stage === 5 ? 'Демо бележка: корабът е в рамките на графика.' : null, createdAt: new Date(Date.now() - ago * day) } });
   }
-  await db.notification.create({ data: { userId: customer.id, title: 'Нова оферта', body: 'Получихте оферта за Tesla Model 3 Long Range.', href: '/account/offers' } });
+  await db.notification.create({ data: { userId: customer.id, title: 'Нова оферта', body: 'Получихте оферта за Hyundai Ioniq 5.', href: '/account/offers' } });
   await db.favorite.create({ data: { userId: customer.id, vehicleId: ids[0] } });
   console.log('Готово. Демо вход: client@exclusive-auto.example / Demo!12345 (admin@… и manager@… със същата парола).');
 }

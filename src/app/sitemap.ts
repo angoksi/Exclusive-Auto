@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     db.vehicle.findMany({ where: { published: true, status: { in: ['AVAILABLE', 'RESERVED'] } }, select: { slug: true, updatedAt: true } }),
     db.blogPost.findMany({ where: { published: true }, select: { slug: true, createdAt: true } }),
   ]);
-  const staticPaths = ['', '/catalog', '/catalog?region=usca', '/catalog?region=kr', '/calculator', '/vin-check', '/tracking', '/find-my-car', '/how-it-works', '/about', '/deliveries', '/reviews', '/blog', '/faq', '/contact', '/privacy', '/terms', '/cookies', ...Object.keys(MARKETS).map((m) => `/import/${m}`)];
+  const staticPaths = ['', '/catalog', '/catalog?saleType=BUY_NOW', '/catalog?saleType=AUCTION', '/calculator', '/vin-check', '/tracking', '/find-my-car', '/how-it-works', '/about', '/deliveries', '/reviews', '/blog', '/faq', '/contact', '/privacy', '/terms', '/cookies', ...Object.keys(MARKETS).map((m) => `/import/${m}`)];
   return [
     ...staticPaths.map((p) => ({ url: SITE_URL + p, changeFrequency: 'weekly' as const, priority: p === '' ? 1 : 0.7 })),
     ...vehicles.map((v) => ({ url: `${SITE_URL}/catalog/${v.slug}`, lastModified: v.updatedAt, changeFrequency: 'daily' as const, priority: 0.8 })),

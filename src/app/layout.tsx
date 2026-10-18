@@ -7,8 +7,8 @@ import { SITE_NAME, SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${SITE_NAME} — внос на автомобили от САЩ, Канада и Южна Корея`, template: `%s | ${SITE_NAME}` },
-  description: 'Премиум платформа за внос на автомобили от САЩ, Канада и Южна Корея: каталог, калкулатор с пълна разбивка на цената, VIN проверка и проследяване на доставката.',
+  title: { default: `${SITE_NAME} — внос на автомобили от Южна Корея`, template: `%s | ${SITE_NAME}` },
+  description: 'Премиум платформа за внос на автомобили от Южна Корея: каталог, калкулатор с пълна разбивка на цената, VIN проверка и проследяване на доставката.',
   openGraph: { type: 'website', locale: 'bg_BG', siteName: SITE_NAME },
   alternates: { canonical: '/' },
 };

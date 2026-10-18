@@ -48,7 +48,7 @@ export function VehicleCard({ v, favorite = false, layout = 'grid' }: { v: Vehic
         </ul>
         <div className="mt-5 flex flex-1 items-end justify-between gap-3 border-t border-line pt-4">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted">{p.label} · {SALE_LABEL[v.saleType]}</p>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted">{v.saleType === 'BUY_NOW' ? SALE_LABEL.BUY_NOW : `${p.label} · ${SALE_LABEL.AUCTION}`}</p>
             <p className="text-xl font-extrabold text-navy-900">{p.eur ? eur(p.eur) : 'По запитване'}</p>
             {p.native && v.currency !== 'EUR' && <p className="text-xs text-muted">{p.native}{v.saleType === 'AUCTION' && v.auctionDate ? ` · търг ${dateBg(v.auctionDate)}` : ''}</p>}
           </div>

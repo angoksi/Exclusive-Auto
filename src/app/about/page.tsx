@@ -4,7 +4,7 @@ import { PageHero } from '@/components/page-hero';
 import { Button } from '@/components/ui/button';
 import { WHY } from '@/lib/content';
 
-export const metadata: Metadata = { title: 'За нас', description: 'EXCLUSIVE AUTO TRADE — внос на автомобили от САЩ, Канада и Южна Корея с прозрачна цена и личен консултант.', alternates: { canonical: '/about' } };
+export const metadata: Metadata = { title: 'За нас', description: 'EXCLUSIVE AUTO TRADE — внос на автомобили от Южна Корея с прозрачна цена и личен консултант.', alternates: { canonical: '/about' } };
 
 export default function About() {
   return (
@@ -14,7 +14,7 @@ export default function About() {
         <div className="container-x grid gap-12 lg:grid-cols-2">
           <div className="prose-bg">
             <h2 className="text-2xl">Нашият подход</h2>
-            <p>Вносът от САЩ, Канада и Южна Корея може да е изгоден, но само когато е добре подготвен. Затова всяка оферта започва с реалистична калкулация: аукционни такси, транспорт, застраховка, мито, ДДС и такси при оформянето.</p>
+            <p>Вносът от Южна Корея може да е изгоден, но само когато е добре подготвен. Затова всяка оферта започва с реалистична калкулация: аукционни такси, транспорт, застраховка, мито, ДДС и такси при оформянето.</p>
             <p>Не обещаваме „най-ниската цена“ на всяка цена. Обещаваме да ви кажем какво знаем, какво не знаем и какъв е рискът — особено при автомобили с повреди.</p>
             <p>Работим по писмен договор, а за всяка поръчка поддържаме история на събитията, която клиентът вижда онлайн.</p>
             <Button asChild variant="copper" className="mt-2"><Link href="/contact">Свържете се с нас</Link></Button>

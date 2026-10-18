@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
 import { getCompareSlugs } from '@/lib/compare';
 import { getPricing } from '@/lib/pricing-server';
-import { calculateImport, platformKeyFor, REGION_CURRENCY } from '@/lib/pricing';
+import { calculateImport, platformKeyFor } from '@/lib/pricing';
 import { cardInclude } from '@/lib/vehicles';
 import { CONDITION_LABEL, REGION_LABEL, SALE_LABEL, dateBg, eur, kmToMi, num } from '@/lib/format';
 
@@ -29,7 +29,7 @@ export default async function ComparePage() {
 
   const totals = vehicles.map((v) => {
     const native = (v.saleType === 'BUY_NOW' ? v.buyNowPrice : v.currentBid) ?? v.buyNowPrice ?? v.currentBid ?? 0;
-    return calculateImport({ region: v.region, price: native, currency: REGION_CURRENCY[v.region], platform: platformKeyFor(v.source, v.region), destination: 'varna', insurance: true, originProof: true, extras: [] }, config).total;
+    return calculateImport({ region: 'KR', price: native, currency: v.currency, platform: platformKeyFor(v.source, v.region), destination: 'varna', insurance: true, originProof: true, extras: [] }, config).total;
   });
   const best = Math.min(...totals);
 

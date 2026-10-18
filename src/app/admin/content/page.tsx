@@ -28,7 +28,7 @@ function DeliveryForm({ d }: { d?: { id: string; title: string; year: number; or
         {d && <input type="hidden" name="id" value={d.id} />}
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Автомобил" name="title"><Input name="title" defaultValue={d?.title} required /></Field><Field label="Година"><Input name="year" type="number" defaultValue={d?.year ?? 2022} required /></Field>
-          <Field label="Произход"><Select name="origin" defaultValue={d?.origin ?? 'US'}><option value="US">САЩ</option><option value="CA">Канада</option><option value="KR">Южна Корея</option></Select></Field>
+          <input type="hidden" name="origin" value="KR" />
           <Field label="Дни до предаване"><Input name="days" type="number" min={1} defaultValue={d?.days ?? 50} required /></Field><Field label="Град"><Input name="city" defaultValue={d?.city ?? ''} /></Field>
           <Field label="Предадена на" name="deliveredAt"><Input name="deliveredAt" type="date" defaultValue={d?.deliveredAt.toISOString().slice(0, 10)} required /></Field>
         </div>

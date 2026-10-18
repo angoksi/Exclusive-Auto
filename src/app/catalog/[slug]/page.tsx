@@ -83,7 +83,7 @@ export default async function VehiclePage({ params }: P) {
       <div className="border-b border-line bg-paper">
         <nav className="container-x flex flex-wrap items-center gap-2 py-3 text-xs text-muted" aria-label="Път">
           <Link href="/" className="hover:text-navy-900">Начало</Link>/<Link href="/catalog" className="hover:text-navy-900">Каталог</Link>/
-          <Link href={`/catalog?region=${v.region === 'KR' ? 'kr' : 'usca'}`} className="hover:text-navy-900">{REGION_LABEL[v.region]}</Link>/<span className="text-navy-900">{title}</span>
+          <Link href="/catalog" className="hover:text-navy-900">{REGION_LABEL[v.region]}</Link>/<span className="text-navy-900">{title}</span>
         </nav>
       </div>
 
@@ -168,7 +168,7 @@ export default async function VehiclePage({ params }: P) {
               <ImportCalculator
                 config={config}
                 user={user}
-                preset={{ region: v.region, price: native ?? 0, platform: platformKeyFor(v.source, v.region), vehicleSlug: v.slug, vehicleTitle: `${v.year} ${title}` }}
+                preset={{ price: native ?? 0, currency: v.currency, platform: platformKeyFor(v.source, v.region), vehicleSlug: v.slug, vehicleTitle: `${v.year} ${title}` }}
               />
             </div>
           </section>
@@ -200,7 +200,7 @@ export default async function VehiclePage({ params }: P) {
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">{SALE_LABEL[v.saleType]}{v.saleType === 'AUCTION' ? ' · текуща цена' : ''}</p>
               <p className="mt-1 text-4xl font-extrabold tracking-tight text-navy-900">{v.priceEur ? eur(v.priceEur) : 'По запитване'}</p>
               {native != null && v.currency !== 'EUR' && <p className="text-sm text-muted">{money(native, v.currency)}</p>}
-              {v.buyNowPrice != null && v.currentBid != null && <p className="mt-2 text-sm text-ink/80">Buy Now: <strong>{money(v.buyNowPrice, v.currency)}</strong></p>}
+              {v.buyNowPrice != null && v.currentBid != null && <p className="mt-2 text-sm text-ink/80">Фиксирана цена: <strong>{money(v.buyNowPrice, v.currency)}</strong></p>}
               <p className="mt-2 text-xs text-muted">Цената е без разходите по вноса. Вижте <a href="#price" className="font-semibold text-copper-700 underline">крайната цена до България</a>.</p>
               {v.auctionDate && <p className="mt-4 rounded-md bg-mist px-3 py-2 text-sm"><span className="text-muted">Дата на търга:</span> <strong>{dateBg(v.auctionDate, true)}</strong></p>}
             </div>

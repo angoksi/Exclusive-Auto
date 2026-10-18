@@ -22,6 +22,6 @@ export const REGION_SLUG = { US: 'usa', CA: 'canada', KR: 'south-korea' } as con
 export const SOURCE_LABEL = { COPART: 'Copart', IAAI: 'IAAI', ENCAR: 'Encar', KCAR: 'K Car', AUTOWINI: 'Autowini', OTHER: 'Друг източник' } as const;
 export const CONDITION_LABEL = { NEW: 'Нов', EXCELLENT: 'Отлично', GOOD: 'Добро', FAIR: 'Задоволително', DAMAGED: 'Повреден', SALVAGE: 'Salvage' } as const;
 export const STATUS_LABEL = { AVAILABLE: 'Наличен', RESERVED: 'Резервиран', SOLD: 'Продаден', ARCHIVED: 'Архивиран' } as const;
-export const SALE_LABEL = { AUCTION: 'Търг', BUY_NOW: 'Buy Now' } as const;
+export const SALE_LABEL = { AUCTION: 'Търг', BUY_NOW: 'Фиксирана цена' } as const;
 export const INQUIRY_STATUS_LABEL = { NEW: 'Нова', IN_PROGRESS: 'В работа', QUOTED: 'Изпратена оферта', CLOSED: 'Приключена' } as const;
 export const ROLE_LABEL = { ADMIN: 'Администратор', MANAGER: 'Мениджър', CUSTOMER: 'Клиент' } as const;

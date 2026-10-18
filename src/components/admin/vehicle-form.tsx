@@ -25,16 +25,16 @@ export function VehicleForm({ v = {} }: { v?: V }) {
           <>
             {v.id && <input type="hidden" name="id" value={v.id} />}
             <div className="grid gap-4 sm:grid-cols-3">
-              {sel('region', 'Държава', [['US', 'САЩ'], ['CA', 'Канада'], ['KR', 'Южна Корея']], 'US')}
-              {sel('source', 'Източник', [['COPART', 'Copart'], ['IAAI', 'IAAI'], ['ENCAR', 'Encar'], ['KCAR', 'K Car'], ['AUTOWINI', 'Autowini'], ['OTHER', 'Друг']], 'COPART')}
+              <input type="hidden" name="region" value="KR" />
+              {sel('source', 'Източник', [['ENCAR', 'Encar'], ['KCAR', 'K Car'], ['AUTOWINI', 'Autowini'], ['OTHER', 'Друг източник / дилър']], 'ENCAR')}
               {f('platform', 'Платформа (етикет)')}
               {f('make', 'Марка', { required: true })}{f('model', 'Модел', { required: true })}{f('trim', 'Модификация')}
               {f('year', 'Година', { type: 'number', required: true })}{f('vin', 'VIN', { maxLength: 17, className: 'font-mono uppercase' })}{f('lotNumber', 'Номер на лот / търг')}
-              {sel('saleType', 'Тип продажба', [['AUCTION', 'Търг'], ['BUY_NOW', 'Buy Now']], 'AUCTION')}
-              {sel('currency', 'Валута', ['USD', 'CAD', 'KRW', 'EUR'], 'USD')}
+              {sel('saleType', 'Тип продажба', [['BUY_NOW', 'Фиксирана цена'], ['AUCTION', 'Търг']], 'BUY_NOW')}
+              {sel('currency', 'Валута', ['KRW', 'USD', 'EUR'], 'KRW')}
               {f('auctionDate', 'Дата на търга', { type: 'datetime-local', defaultValue: toLocal(v.auctionDate) })}
-              {f('currentBid', 'Текуща цена на наддаване', { type: 'number', min: 0 })}{f('buyNowPrice', 'Buy Now цена', { type: 'number', min: 0 })}
-              {f('location', 'Локация', { required: true })}{f('country', 'Страна', { required: true })}{f('odometerKm', 'Пробег (км)', { type: 'number', required: true, min: 0 })}
+              {f('currentBid', 'Текуща цена на наддаване (само при търг)', { type: 'number', min: 0 })}{f('buyNowPrice', 'Фиксирана цена', { type: 'number', min: 0 })}
+              {f('location', 'Локация (град)', { required: true })}<input type="hidden" name="country" value="Южна Корея" />{f('odometerKm', 'Пробег (км)', { type: 'number', required: true, min: 0 })}
               {f('engine', 'Двигател', { required: true })}
               {sel('fuel', 'Гориво', FUELS)}{sel('transmission', 'Трансмисия', TRANSMISSIONS)}{sel('drive', 'Задвижване', DRIVES)}{sel('bodyType', 'Тип купе', BODIES)}{sel('color', 'Цвят', COLORS)}
               {sel('condition', 'Състояние', [['NEW', 'Нов'], ['EXCELLENT', 'Отлично'], ['GOOD', 'Добро'], ['FAIR', 'Задоволително'], ['DAMAGED', 'Повреден'], ['SALVAGE', 'Salvage']], 'GOOD')}

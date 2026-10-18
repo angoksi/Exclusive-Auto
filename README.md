@@ -1,6 +1,6 @@
 # EXCLUSIVE AUTO TRADE
 
-Платформа за внос на автомобили от САЩ, Канада и Южна Корея: каталог със сървърно филтриране, детайлни страници,
+Платформа за внос на автомобили от Южна Корея (фиксирана цена и търгове): каталог със сървърно филтриране, детайлни страници,
 калкулатор за внос, VIN проверка, проследяване на доставки, потребителски профил и админ панел.
 
 **Стек:** Next.js 16 (App Router, TypeScript) · Tailwind CSS 4 · shadcn/ui-стил компоненти (Radix, cva, lucide) · Motion ·
@@ -28,7 +28,7 @@ npm run dev                   # http://localhost:3000
 |---|---|
 | `src/app` | страници (каталог, детайл, калкулатор, `/vin-check`, `/tracking`, `/compare`, `/find-my-car`, `/account/*`, `/admin/*`, съдържание, legal) |
 | `src/lib/pricing.ts` | **калкулаторът**: митническа стойност (CIF) → мито → ДДС върху (CIF + мито + пристанищни такси) |
-| `src/lib/providers` | адаптери за Copart, IAAI, Encar, K Car, Autowini към общ модел `NormalizedVehicle` |
+| `src/lib/providers` | адаптери за Encar, K Car, Autowini към общ модел `NormalizedVehicle` |
 | `src/lib/actions` | сървърни действия (auth, запитвания, потребител, админ) с zod валидация и проверка на роли |
 | `prisma/schema.prisma` | модел на данните; `prisma/seed.ts` — демо данни |
 | `legacy-static/` | предишният статичен сайт (за справка) |

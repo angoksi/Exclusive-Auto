@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/db';
 import { REGION_LABEL, dateBg } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Реализирани доставки', description: 'Автомобили, внесени от САЩ, Канада и Южна Корея и предадени на клиентите ни.', alternates: { canonical: '/deliveries' } };
+export const metadata: Metadata = { title: 'Реализирани доставки', description: 'Автомобили, внесени от Южна Корея и предадени на клиентите ни.', alternates: { canonical: '/deliveries' } };
 export const revalidate = 600;
 
 export default async function Deliveries() {

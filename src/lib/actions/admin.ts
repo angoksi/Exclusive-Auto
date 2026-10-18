@@ -22,7 +22,7 @@ const fail = (e: unknown): FormState => ({ error: e instanceof Error ? e.message
 
 /* ---------- Автомобили ---------- */
 const vehicleSchema = z.object({
-  region: z.enum(['US', 'CA', 'KR']), source: z.enum(['COPART', 'IAAI', 'ENCAR', 'KCAR', 'AUTOWINI', 'OTHER']),
+  region: z.literal('KR'), source: z.enum(['ENCAR', 'KCAR', 'AUTOWINI', 'OTHER']),
   make: z.string().trim().min(1, 'Задължително').max(60), model: z.string().trim().min(1, 'Задължително').max(80), trim: z.string().trim().max(80).optional(),
   year: z.coerce.number().int().min(1950).max(2035), vin: z.string().trim().toUpperCase().regex(/^[A-HJ-NPR-Z0-9]{17}$/, 'Невалиден VIN (17 символа)').optional().or(z.literal('')),
   lotNumber: z.string().trim().max(40).optional(), platform: z.string().trim().max(40).optional(),
@@ -275,7 +275,7 @@ export async function deleteReview(id: string) { await staff(); await db.review.
 
 export async function saveDelivery(_: FormState, fd: FormData): Promise<FormState> {
   await staff();
-  const p = z.object({ id: z.string().optional(), title: z.string().trim().min(3, 'Задължително').max(120), year: z.coerce.number().int().min(1990).max(2035), origin: z.enum(['US', 'CA', 'KR']), days: z.coerce.number().int().min(1).max(365), city: z.string().max(60).optional(), deliveredAt: z.string().min(1, 'Задължително') }).safeParse(Object.fromEntries([...fd].filter(([, v]) => v !== '')));
+  const p = z.object({ id: z.string().optional(), title: z.string().trim().min(3, 'Задължително').max(120), year: z.coerce.number().int().min(1990).max(2035), origin: z.literal('KR').default('KR'), days: z.coerce.number().int().min(1).max(365), city: z.string().max(60).optional(), deliveredAt: z.string().min(1, 'Задължително') }).safeParse(Object.fromEntries([...fd].filter(([, v]) => v !== '')));
   if (!p.success) return { errors: zodErrors(p.error.issues) };
   const { id, ...rest } = p.data;
   const data = { ...rest, city: rest.city ?? null, deliveredAt: new Date(rest.deliveredAt), isDemo: fd.get('isDemo') === 'on' };

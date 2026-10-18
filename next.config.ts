@@ -8,6 +8,12 @@ const config: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
+  async redirects() {
+    return [
+      { source: '/import/usa', destination: '/import/south-korea', permanent: true },
+      { source: '/import/canada', destination: '/import/south-korea', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

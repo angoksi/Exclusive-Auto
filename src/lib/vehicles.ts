@@ -28,7 +28,7 @@ export const filterSchema = z.object({
   condition: z.enum(['NEW', 'EXCELLENT', 'GOOD', 'FAIR', 'DAMAGED', 'SALVAGE']).optional().catch(undefined),
   damage: z.enum(['yes', 'no']).optional().catch(undefined),
   runs: z.enum(['yes', 'no']).optional().catch(undefined),
-  source: z.enum(['COPART', 'IAAI', 'ENCAR', 'KCAR', 'AUTOWINI', 'OTHER']).optional().catch(undefined),
+  source: z.enum(['ENCAR', 'KCAR', 'AUTOWINI', 'OTHER']).optional().catch(undefined),
   saleType: z.enum(['AUCTION', 'BUY_NOW']).optional().catch(undefined),
   location: opt,
   auctionFrom: z.string().date().optional().catch(undefined),
@@ -49,8 +49,8 @@ export function parseFilters(sp: Raw): Filters {
 
 export function buildWhere(f: Filters): Prisma.VehicleWhereInput {
   const and: Prisma.VehicleWhereInput[] = [{ published: true }, { status: { in: ['AVAILABLE', 'RESERVED'] } }];
-  if (f.region === 'usca') and.push({ region: { in: ['US', 'CA'] } });
-  else if (f.region) and.push({ region: f.region.toUpperCase() as 'US' | 'CA' | 'KR' });
+  // Платформата работи само с автомобили от Южна Корея
+  and.push({ region: 'KR' });
   if (f.make) and.push({ make: { equals: f.make, mode: 'insensitive' } });
   if (f.model) and.push({ model: { equals: f.model, mode: 'insensitive' } });
   if (f.yearFrom) and.push({ year: { gte: f.yearFrom } });
@@ -108,9 +108,8 @@ export async function searchVehicles(f: Filters) {
 }
 
 export async function makeModelMap(region?: Filters['region']) {
-  const where: Prisma.VehicleWhereInput = { published: true, status: { in: ['AVAILABLE', 'RESERVED'] } };
-  if (region === 'usca') where.region = { in: ['US', 'CA'] };
-  else if (region) where.region = region.toUpperCase() as 'US' | 'CA' | 'KR';
+  void region;
+  const where: Prisma.VehicleWhereInput = { region: 'KR', published: true, status: { in: ['AVAILABLE', 'RESERVED'] } };
   const rows = await db.vehicle.groupBy({ by: ['make', 'model'], where, _count: true, orderBy: [{ make: 'asc' }, { model: 'asc' }] });
   const map: Record<string, string[]> = {};
   for (const r of rows) (map[r.make] ??= []).push(r.model);
@@ -118,7 +117,7 @@ export async function makeModelMap(region?: Filters['region']) {
 }
 
 export const latest = (take = 8, extra: Prisma.VehicleWhereInput = {}) =>
-  db.vehicle.findMany({ where: { published: true, status: 'AVAILABLE', ...extra }, orderBy: { createdAt: 'desc' }, take, include: cardInclude });
+  db.vehicle.findMany({ where: { region: 'KR', published: true, status: 'AVAILABLE', ...extra }, orderBy: { createdAt: 'desc' }, take, include: cardInclude });
 
 export function toQuery(f: Partial<Record<string, string | number | undefined>>) {
   const p = new URLSearchParams();

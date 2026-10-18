@@ -63,7 +63,7 @@ export default async function EditVehicle({ params, searchParams }: { params: Pr
                 <Field label="Тип" name="type"><Input name="type" required placeholder="напр. Предишна продажба" /></Field>
                 <Field label="Пробег (км)"><Input name="odometerKm" type="number" min={0} /></Field>
                 <Field label="Описание" name="description" className="sm:col-span-2"><Input name="description" required /></Field>
-                <Field label="Източник"><Input name="source" placeholder="напр. Copart" /></Field>
+                <Field label="Източник"><Input name="source" placeholder="напр. Encar" /></Field>
               </div>
             </></ActionForm>
       </section>

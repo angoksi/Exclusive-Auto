@@ -130,7 +130,7 @@ export function calculateImport(input: CalcInput, cfg: PricingConfig): CalcResul
 
   const lines: CalcLine[] = [
     { key: 'vehicle', group: 'vehicle', label: 'Цена на автомобила', amount: r(vehicle) },
-    { key: 'auction', group: 'vehicle', label: 'Аукционни такси', amount: r(auctionEur) },
+    { key: 'auction', group: 'vehicle', label: 'Такси на платформата / дилъра', amount: r(auctionEur) },
     { key: 'inland', group: 'transport', label: 'Транспорт до пристанище', amount: r(inland) },
     { key: 'sea', group: 'transport', label: 'Международен транспорт', amount: r(sea) },
     { key: 'insurance', group: 'transport', label: 'Застраховка', amount: r(insurance), note: input.insurance ? `${cfg.insuranceRate}% от стойността` : 'Не е избрана' },
