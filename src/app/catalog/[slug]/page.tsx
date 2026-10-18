@@ -14,7 +14,7 @@ import { getUser } from '@/lib/auth';
 import { getFavoriteIds } from '@/lib/favorites';
 import { getSiteInfo, SITE_NAME, SITE_URL } from '@/lib/site';
 import { cardInclude } from '@/lib/vehicles';
-import { CONDITION_LABEL, REGION_LABEL, SALE_LABEL, SOURCE_LABEL, STATUS_LABEL, dateBg, eur, kmToMi, money, num } from '@/lib/format';
+import { CONDITION_LABEL, REGION_LABEL, SALE_LABEL, STATUS_LABEL, dateBg, eur, kmToMi, money, num } from '@/lib/format';
 import { STAGES } from '@/lib/stages';
 
 type P = { params: Promise<{ slug: string }> };
@@ -52,7 +52,7 @@ export default async function VehiclePage({ params }: P) {
 
   const spec: [string, string][] = [
     ['Марка', v.make], ['Модел', v.model], ['Модификация', v.trim ?? '—'], ['Година', String(v.year)],
-    ['VIN', v.vin ?? 'При запитване'], ['Лот / номер на търга', v.lotNumber ?? '—'], ['Платформа', v.platform ?? SOURCE_LABEL[v.source]],
+    ['VIN', v.vin ?? 'При запитване'], 
     ['Пробег', `${num(v.odometerKm)} км (${num(kmToMi(v.odometerKm))} мили)`], ['Двигател', v.engine], ['Гориво', v.fuel], ['Трансмисия', v.transmission],
     ['Задвижване', v.drive], ['Тип купе', v.bodyType], ['Цвят', v.color], ['Локация', `${v.location}, ${v.country}`],
   ];
@@ -146,7 +146,7 @@ export default async function VehiclePage({ params }: P) {
                 {v.history.map((h) => (
                   <li key={h.id} className="relative pb-6 last:pb-0">
                     <span className="absolute -left-[31px] top-1 size-3 rounded-full border-2 border-copper-600 bg-cream" />
-                    <p className="text-xs text-muted">{dateBg(h.date)}{h.odometerKm ? ` · ${num(h.odometerKm)} км` : ''}{h.source ? ` · ${h.source}` : ''}</p>
+                    <p className="text-xs text-muted">{dateBg(h.date)}{h.odometerKm ? ` · ${num(h.odometerKm)} км` : ''}</p>
                     <p className="font-semibold text-navy-900">{h.type}</p>
                     <p className="text-sm text-ink/75">{h.description}</p>
                   </li>
@@ -200,7 +200,7 @@ export default async function VehiclePage({ params }: P) {
           <div id="inquiry" className="card mt-5 scroll-mt-32 p-6">
             <h2 className="text-lg">Запитване за този автомобил</h2>
             <p className="mb-4 mt-1 text-sm text-muted">Консултант ще отговори в рамките на работния ден.</p>
-            <InquiryForm type="VEHICLE" compact vehicleSlug={v.slug} user={user} defaultMessage={`Интересувам се от ${v.year} ${title}${v.lotNumber ? ` (лот ${v.lotNumber})` : ''}.`} />
+            <InquiryForm type="VEHICLE" compact vehicleSlug={v.slug} user={user} defaultMessage={`Интересувам се от ${v.year} ${title}.`} />
           </div>
         </aside>
       </div>

@@ -15,7 +15,7 @@ export const generateStaticParams = () => Object.keys(MARKETS).map((market) => (
 export async function generateMetadata({ params }: P): Promise<Metadata> {
   const m = MARKETS[(await params).market as keyof typeof MARKETS];
   if (!m) return {};
-  return { title: m.title, description: `${m.intro} Платформи: ${m.platforms}. Срок ${m.time}.`, alternates: { canonical: `/import/${m.slug}` } };
+  return { title: m.title, description: `${m.intro} Срок ${m.time}.`, alternates: { canonical: `/import/${m.slug}` } };
 }
 
 export default async function MarketPage({ params }: P) {
@@ -38,7 +38,6 @@ export default async function MarketPage({ params }: P) {
             <p className="mt-8 rounded-md bg-copper-100/60 p-4 text-sm leading-6 text-ink/80">{m.note}</p>
           </div>
           <dl className="card divide-y divide-line">
-            <div className="p-6"><dt className="text-xs font-semibold uppercase tracking-wider text-muted">Платформи</dt><dd className="mt-1 font-bold text-navy-900">{m.platforms}</dd></div>
             <div className="p-6"><dt className="text-xs font-semibold uppercase tracking-wider text-muted">Ориентировъчен срок</dt><dd className="mt-1 text-2xl font-extrabold text-navy-900">{m.time}</dd></div>
             <div className="p-6"><dt className="text-xs font-semibold uppercase tracking-wider text-muted">Процес</dt><dd className="mt-1 text-sm text-ink/75">{PROCESS.length} стъпки до предаването</dd></div>
           </dl>

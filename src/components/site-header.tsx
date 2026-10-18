@@ -14,7 +14,7 @@ const links = [
 
 export const catalogMenu = [
   { href: '/catalog?saleType=BUY_NOW', label: 'Фиксирана цена', hint: 'Готови за покупка автомобили' },
-  { href: '/catalog?saleType=AUCTION', label: 'Търгове', hint: 'Наддаване на корейски платформи' },
+  { href: '/catalog?saleType=AUCTION', label: 'Търгове', hint: 'Автомобили на търг' },
   { href: '/find-my-car', label: 'Намери моя автомобил', hint: 'Персонализирано търсене' },
 ];
 

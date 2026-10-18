@@ -67,18 +67,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Markets */}
-      <section className="bg-paper py-12">
-        <div className="container-x grid gap-4 md:grid-cols-3">
-          {[{ href: '/catalog?source=ENCAR', t: 'Encar', d: 'Най-голямата корейска платформа за употребявани автомобили' }, { href: '/catalog?source=KCAR', t: 'K Car', d: 'Сертифицирани автомобили с проверка на състоянието' }, { href: '/catalog?source=AUTOWINI', t: 'Autowini', d: 'Експортна платформа с фиксирани цени' }].map((m) => (
-            <Link key={m.t} href={m.href} className="group flex items-center justify-between rounded-lg border border-line p-6 transition-colors hover:border-navy-900">
-              <span><span className="block text-xl font-bold text-navy-900">{m.t}</span><span className="text-sm text-muted">{m.d}</span></span>
-              <ArrowRight className="size-5 text-copper-600 transition-transform group-hover:translate-x-1" />
-            </Link>
-          ))}
-        </div>
-      </section>
-
       <VehicleRow eyebrow="Селекция" title="Препоръчани автомобили" text="Подбрани от нашия екип по състояние, цена и ликвидност." href="/catalog" items={featured} favs={favs} />
       <div className="bg-paper"><VehicleRow eyebrow="Ново в каталога" title="Последно добавени" href="/catalog?sort=newest" items={newest} favs={favs} /></div>
       <VehicleRow eyebrow="Готови за покупка" title="Автомобили с фиксирана цена" href="/catalog?saleType=BUY_NOW" items={fixed} favs={favs} />

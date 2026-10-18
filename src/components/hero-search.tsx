@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
-import { BODIES } from '@/lib/vehicle-options';
+import { BODIES, FUELS } from '@/lib/vehicle-options';
 
 export function HeroSearch({ makeModels }: { makeModels: Record<string, string[]> }) {
   const router = useRouter();
@@ -22,10 +22,8 @@ export function HeroSearch({ makeModels }: { makeModels: Record<string, string[]
   return (
     <form onSubmit={submit} className="rounded-lg bg-paper p-4 shadow-2xl shadow-navy-950/30 sm:p-5" aria-label="Бързо търсене">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Платформа">
-          <Select name="source" defaultValue="">
-            <option value="">Всички платформи</option><option value="ENCAR">Encar</option><option value="KCAR">K Car</option><option value="AUTOWINI">Autowini</option>
-          </Select>
+        <Field label="Гориво">
+          <Select name="fuel" defaultValue=""><option value="">Всички</option>{FUELS.map((f) => <option key={f}>{f}</option>)}</Select>
         </Field>
         <Field label="Марка">
           <Select name="make" value={make} onChange={(e) => setMake(e.target.value)}>

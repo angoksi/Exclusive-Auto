@@ -21,7 +21,7 @@ export function Gallery({ images, title }: { images: { url: string; alt?: string
     return () => window.removeEventListener('keydown', onKey);
   }, [full, go]);
 
-  if (!n) return <div className="grid aspect-[3/2] place-items-center rounded-lg bg-mist text-muted">Няма снимки</div>;
+  if (!n) return <div className="grid aspect-[3/2] place-items-center rounded-lg bg-gradient-to-br from-navy-800 to-navy-950 text-center text-sm font-semibold tracking-wide text-white/70">Снимки при запитване</div>;
 
   const swipe = {
     onPointerDown: (e: React.PointerEvent) => { startX.current = e.clientX; },

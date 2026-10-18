@@ -37,10 +37,6 @@ const numeric = (v: unknown): number | undefined => {
   const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v.replace(/[^\d.]/g, '')) : NaN;
   return Number.isFinite(n) ? n : undefined;
 };
-const urls = (v: unknown): string[] => {
-  if (!Array.isArray(v)) return [];
-  return v.map((x) => (typeof x === 'string' ? x : text(get(x as Raw, ['url', 'src', 'image', 'photo', 'original', 'large']))) ?? '').filter((u) => /^https:\/\//.test(u));
-};
 
 export function mapCarapis(r: Raw): NormalizedVehicle | null {
   const id = text(get(r, ['id', 'uuid', 'external_id', 'listing_id', 'pk']));
@@ -57,18 +53,16 @@ export function mapCarapis(r: Raw): NormalizedVehicle | null {
   const gear = (text(get(r, ['transmission', 'gearbox'])) ?? '').toLowerCase();
   const body = (text(get(r, ['body_type', 'body', 'category'])) ?? '').toLowerCase();
   const trim = text(get(r, ['trim', 'grade', 'badge', 'version']));
-  const dealer = text(get(r, ['dealer', 'dealer_name', 'seller']));
-  const label = { ENCAR: 'Encar', KCAR: 'K Car', AUTOWINI: 'Autowini', OTHER: 'Друг източник' }[source];
   return {
-    source, sourceId: id, region: 'KR', make, model, trim, year, vin: text(get(r, ['vin', 'vin_number'])), platform: label,
+    source, sourceId: id, region: 'KR', make, model, trim, year, vin: text(get(r, ['vin', 'vin_number'])), platform: undefined,
     saleType: 'BUY_NOW', currency, buyNowPrice: price && price > 0 ? Math.round(price) : undefined,
     location: text(get(r, ['location', 'city', 'region', 'address'])) ?? '—', country: 'Южна Корея',
     odometerKm: Math.round(numeric(get(r, ['mileage', 'mileage_km', 'odometer', 'odometer_km'])) ?? 0),
     engine: text(get(r, ['engine', 'engine_type', 'displacement'])) ?? '—', fuel: FUEL[fuel] ?? (fuel || '—'), transmission: GEAR[gear] ?? (gear || '—'),
     drive: text(get(r, ['drive', 'drive_type', 'drivetrain'])) ?? '—', bodyType: BODY[body] ?? '—', color: ((c) => (c ? COLOR[c.toLowerCase()] ?? c : '—'))(text(get(r, ['color', 'colour', 'exterior_color']))),
     condition: 'GOOD', runsAndDrives: true, hasKeys: true,
-    description: `${year} ${make} ${model}${trim ? ' ' + trim : ''} от ${label}${dealer ? `, продавач: ${dealer}` : ''}. Свържете се с консултант за пълна информация, снимки и оферта за доставка.`,
-    images: urls(get(r, ['photos', 'images', 'photo_urls', 'image_urls', 'pictures'])).slice(0, 12),
+    description: `${year} ${make} ${model}${trim ? ' ' + trim : ''}. Свържете се с консултант за пълна информация, снимки и оферта за доставка.`,
+    images: [], // снимките от източника не се копират и не се показват; качват се ръчно от админ панела
   };
 }
 

@@ -86,7 +86,6 @@ export function CatalogFilters({ values, makeModels, keepParams, loggedIn }: { v
         {range('priceFrom', 'priceTo', 'Цена в € (от / до)', ['5 000', '40 000'])}
         <Field label="Пробег до (км)"><Input type="number" inputMode="numeric" min={0} placeholder="напр. 80000" value={v.kmMax ?? ''} onChange={(e) => set('kmMax', e.target.value, false)} /></Field>
         {sel('saleType', 'Тип продажба', [['BUY_NOW', 'Фиксирана цена'], ['AUCTION', 'Търг']])}
-        {sel('source', 'Платформа', [['ENCAR', 'Encar'], ['KCAR', 'K Car'], ['AUTOWINI', 'Autowini'], ['OTHER', 'Друг източник']])}
         {sel('fuel', 'Гориво', FUELS)}
         {sel('transmission', 'Скоростна кутия', TRANSMISSIONS)}
         {sel('bodyType', 'Тип купе', BODIES)}

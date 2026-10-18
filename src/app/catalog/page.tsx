@@ -18,7 +18,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
   const what = [f.make, f.model].filter(Boolean).join(' ') || 'Автомобили';
   return {
     title: `${what} ${where}`,
-    description: `Каталог с автомобили ${where}: филтри по марка, модел, година, цена, пробег, състояние и аукционна платформа. Пълна разбивка на крайната цена до България.`,
+    description: `Каталог с автомобили ${where}: филтри по марка, модел, година, цена, пробег, състояние и вид продажба.`,
     alternates: { canonical: '/catalog' },
     robots: Object.keys(await searchParams).filter((k) => !['make'].includes(k)).length ? { index: false, follow: true } : undefined,
   };
