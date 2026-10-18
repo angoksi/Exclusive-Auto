@@ -136,6 +136,16 @@ export async function runSync(): Promise<FormState> {
   revalidatePath('/admin/vehicles');
   return { ok: true, message: rep.map((r) => `${r.provider}: ${r.status === 'ok' ? `${r.count} обяви` : r.message}`).join(' · ') };
 }
+export async function testCarapis(): Promise<FormState> {
+  await staff();
+  try {
+    const { carapisPreview } = await import('@/lib/providers/carapis');
+    const r = await carapisPreview(2);
+    return { ok: r.status === 200, error: r.status === 200 ? undefined : `HTTP ${r.status}`, message: r.body };
+  } catch (e) {
+    return fail(e);
+  }
+}
 export async function recalcPrices(): Promise<FormState> {
   await admin();
   const cfg = await getPricing();

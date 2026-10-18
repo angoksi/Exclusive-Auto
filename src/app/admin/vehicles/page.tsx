@@ -7,7 +7,7 @@ import { Photo } from '@/components/photo';
 import { RunButton } from '@/components/admin/action-form';
 import { db } from '@/lib/db';
 import { requireRole, STAFF } from '@/lib/auth';
-import { deleteVehicle, recalcPrices, runSync, toggleVehiclePublished } from '@/lib/actions/admin';
+import { deleteVehicle, recalcPrices, runSync, testCarapis, toggleVehiclePublished } from '@/lib/actions/admin';
 import { REGION_LABEL, STATUS_LABEL, eur, num } from '@/lib/format';
 import { ADAPTERS } from '@/lib/providers/adapters';
 
@@ -28,7 +28,7 @@ export default async function AdminVehicles({ searchParams }: { searchParams: Pr
       <form className="flex gap-2"><Input name="q" defaultValue={q} placeholder="Търсене по марка, модел, VIN, лот…" /><Button variant="outline">Търси</Button></form>
       <div className="card flex flex-wrap items-start justify-between gap-4 p-5">
         <div className="text-sm"><p className="font-bold text-navy-900">Доставчици на данни</p><p className="text-muted">{ADAPTERS.map((a) => `${a.name}: ${a.isConfigured() ? 'свързан' : 'няма ключ (демо)'}`).join(' · ')}</p></div>
-        <div className="flex flex-wrap gap-3"><RunButton action={runSync} label="Синхронизирай доставчици" />{user.role === 'ADMIN' && <RunButton action={recalcPrices} label="Преизчисли цените в EUR" />}</div>
+        <div className="flex flex-wrap gap-3"><RunButton action={runSync} label="Синхронизирай доставчици" /><RunButton action={testCarapis} label="Тест на Carapis (суров отговор)" mono />{user.role === 'ADMIN' && <RunButton action={recalcPrices} label="Преизчисли цените в EUR" />}</div>
       </div>
       <div className="card overflow-x-auto">
         <table className="w-full min-w-[780px] text-sm">

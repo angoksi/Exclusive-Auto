@@ -20,12 +20,13 @@ export function ActionForm({ action, children, submit = 'Запази', classNam
   );
 }
 
-export function RunButton({ action, label, variant = 'outline' }: { action: () => Promise<FormState>; label: string; variant?: 'outline' | 'primary' | 'copper' }) {
+export function RunButton({ action, label, variant = 'outline', mono }: { action: () => Promise<FormState>; label: string; variant?: 'outline' | 'primary' | 'copper'; mono?: boolean }) {
   const [state, run, pending] = useActionState(async () => action(), {} as FormState);
   return (
     <form action={run} className="inline-flex flex-col gap-2">
       <Button type="submit" variant={variant} size="sm" disabled={pending}>{pending ? 'Изпълнява се…' : label}</Button>
-      {state.message && <p className="max-w-md text-xs text-muted">{state.message}</p>}
+      {state.error && <p className="max-w-md text-xs font-medium text-danger">{state.error}</p>}
+      {state.message && (mono ? <textarea readOnly value={state.message} className="h-64 w-[min(80vw,640px)] rounded-md border border-line bg-paper p-3 font-mono text-[11px]" /> : <p className="max-w-md text-xs text-muted">{state.message}</p>)}
     </form>
   );
 }

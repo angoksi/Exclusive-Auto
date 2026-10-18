@@ -49,8 +49,8 @@ VIN история от външен доставчик: `VIN_HISTORY_API_URL/KE
 демонстрационен режим само със записи от собствената база — не се генерира история.
 
 ### Carapis (автоматични обяви от Encar и др.)
-Адаптерът `src/lib/providers/carapis.ts` чете `GET https://api.carapis.com/v2/listings` (Bearer ключ). Променливи: `CARAPIS_API_KEY`,
-`CARAPIS_SOURCES` (напр. `encar`), `CARAPIS_MAX_LISTINGS`, `CARAPIS_QUERY` (филтри), `SYNC_PUBLISH=false` (новите обяви са скрити за преглед).
+Адаптерът `src/lib/providers/carapis.ts` чете `GET https://api.carapis.com/apix/catalog_api/vehicles/` (ключ в заглавка `X-API-Key`). Бутонът „Тест на Carapis“ в админ → Автомобили показва суровия отговор. Променливи: `CARAPIS_API_KEY`,
+`CARAPIS_MAX_LISTINGS`, `CARAPIS_QUERY` (филтри), `SYNC_PUBLISH=false` (новите обяви са скрити за преглед).
 Синхронизация: бутон в админ → Автомобили или автоматично с `GET /api/cron/sync-providers` + `Authorization: Bearer $CRON_SECRET` (cron).
 Изчезналите от пълния списък обяви се архивират. Преди търговска употреба проверете условията на Carapis и на платформите.
 
