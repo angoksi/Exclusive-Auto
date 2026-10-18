@@ -34,6 +34,14 @@ function deepImageUrls(root: unknown): string[] {
   return [...out];
 }
 
+const allowedSources = () => (process.env.CARAPIS_SOURCE ?? 'encar').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+/** Платформата на обявата според отговора (ако я има); ползва се за филтриране. */
+const rawSource = (r: Raw) => text(get(r, ['source', 'source_slug', 'source_name', 'platform', 'site', 'marketplace']))?.toLowerCase();
+const isAllowed = (r: Raw) => {
+  const rs = rawSource(r);
+  return !rs || allowedSources().some((a) => rs.includes(a));
+};
+
 const get = (o: Raw, keys: string[]): unknown => {
   for (const k of keys) {
     const v = o[k];
@@ -92,6 +100,8 @@ function pageUrl(page: number, size: number) {
   u.searchParams.set('page', String(page));
   u.searchParams.set('page_size', String(size));
   if (!u.searchParams.has('available_only')) u.searchParams.set('available_only', 'true');
+  const src = allowedSources();
+  if (src.length === 1 && !u.searchParams.has('source')) u.searchParams.set('source', src[0]);
   return u;
 }
 
@@ -136,12 +146,13 @@ export const carapis: ProviderAdapter = {
       const json = (await res.json()) as { results?: Raw[]; next?: string | null } | Raw[];
       const rows = Array.isArray(json) ? json : json.results ?? [];
       for (const r of rows) {
+        if (!isAllowed(r)) continue; // само избраните платформи (по подразбиране Encar)
         const v = mapCarapis(r);
         if (v) out.push(v);
       }
       const hasNext = !Array.isArray(json) && Boolean(json.next);
       if (!rows.length || !hasNext) break;
-      if (out.length >= max) { complete = false; break; }
+      if (out.length >= max || page >= 60) { complete = false; break; }
       page++;
     }
     // Ако списъкът не съдържа снимки, взема ги от страницата на самата обява (ограничено на синхронизация, за да не се изчерпва лимитът)
