@@ -48,6 +48,8 @@ export interface ProviderAdapter {
   isConfigured(): boolean;
   /** Извлича обяви от лицензиран API/фийд и ги превръща в общия модел. */
   fetchListings(opts?: { since?: Date; limit?: number }): Promise<Listings>;
+  /** По избор: снимки от страницата на конкретна обява, когато списъкът не ги съдържа. */
+  fetchImages?(sourceId: string): Promise<string[]>;
 }
 
 export class ProviderNotConfigured extends Error {

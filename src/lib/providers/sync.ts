@@ -49,6 +49,18 @@ export async function syncProviders(cfg: PricingConfig) {
     }
     try {
       const list = await a.fetchListings();
+      // Снимки от детайла на обява — само за тези, които нямат снимки нито в списъка, нито вече в базата (ограничено на синхронизация)
+      if (a.fetchImages) {
+        const missing = list.filter((v) => !v.images.length);
+        const have = new Set((await db.vehicleImage.findMany({ where: { vehicle: { sourceId: { in: missing.map((v) => v.sourceId) } } }, select: { vehicle: { select: { sourceId: true } } }, distinct: ['vehicleId'] })).map((r) => r.vehicle.sourceId));
+        let budget = Number(process.env.CARAPIS_DETAIL_LIMIT ?? 50);
+        for (const v of missing) {
+          if (budget <= 0) break;
+          if (have.has(v.sourceId)) continue;
+          budget--;
+          try { v.images = await a.fetchImages(v.sourceId); } catch { /* продължава със следващата */ }
+        }
+      }
       for (const v of list) await upsertNormalized(v, cfg, { published: true }); // новите обяви се публикуват веднага
       // Обява, която я няма в пълния списък от доставчика, вече не е налична
       let archived = 0;
