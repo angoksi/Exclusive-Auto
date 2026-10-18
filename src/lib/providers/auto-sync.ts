@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { DEFAULT_PRICING, type PricingConfig } from '@/lib/pricing';
 import { syncProviders } from './sync';
 import { ADAPTERS } from './adapters';
+import { carapisCooldownUntil } from './carapis';
 import { signedPhotoUrl } from '@/lib/photo-proxy';
 
 let running = false;
@@ -30,11 +31,11 @@ export async function runSyncOnce() {
 /** Допълва снимки на обяви без такива — по малки порции, докато има недовършени (по подразбиране 30 обяви на всеки 2 мин.). */
 export async function fillMissingPhotos() {
   const adapter = ADAPTERS.find((a) => a.fetchImages && a.isConfigured());
-  if (!adapter?.fetchImages || filling || running) return 0;
+  if (!adapter?.fetchImages || filling || running || Date.now() < carapisCooldownUntil()) return 0;
   filling = true;
   let filled = 0;
   try {
-    const batch = Math.max(1, Number(process.env.CARAPIS_PHOTO_BATCH ?? 30));
+    const batch = Math.max(1, Number(process.env.CARAPIS_PHOTO_BATCH ?? 10));
     const now = Date.now();
     const rows = await db.vehicle.findMany({ where: { isDemo: false, sourceId: { not: null }, images: { none: {} } }, select: { id: true, sourceId: true }, orderBy: { createdAt: 'desc' }, take: batch * 3 });
     for (const v of rows) {
@@ -46,7 +47,8 @@ export async function fillMissingPhotos() {
         if (!urls.length) { triedEmpty.set(v.id, now); continue; }
         await db.vehicleImage.createMany({ data: urls.map((u, position) => ({ vehicleId: v.id, url: signedPhotoUrl(u), position })) });
         filled++;
-      } catch {
+      } catch (e) {
+        if (e instanceof Error && /429/.test(e.message)) break; // лимит — спира, без да маркира обявата
         triedEmpty.set(v.id, now);
       }
     }

@@ -130,6 +130,36 @@ function headers() {
   return { 'X-API-Key': key, Accept: 'application/json' };
 }
 
+/* ---- Ограничаване на честотата към Carapis: пауза между заявките и повторен опит при 429 ---- */
+let lastRequest = 0;
+let cooldownUntil = 0;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** До кога е на пауза (след многократен 429) — другите фонови задачи (снимки) трябва да изчакат. */
+export const carapisCooldownUntil = () => cooldownUntil;
+export class CarapisRateLimit extends Error {
+  constructor() {
+    super('Carapis: надвишен лимит на заявките (429).');
+  }
+}
+
+async function cfetch(url: URL | string, timeout = 30_000): Promise<Response> {
+  const h = headers();
+  const gap = Number(process.env.CARAPIS_DELAY_MS ?? 500);
+  for (let attempt = 0; ; attempt++) {
+    const wait = lastRequest + gap - Date.now();
+    if (wait > 0) await sleep(wait);
+    lastRequest = Date.now();
+    const res = await fetch(url, { headers: h, signal: AbortSignal.timeout(timeout) });
+    if (res.status !== 429) return res;
+    const ra = Number(res.headers.get('retry-after'));
+    if (attempt >= 3) {
+      cooldownUntil = Date.now() + 10 * 60_000; // 10 минути пауза за всички фонови заявки
+      return res;
+    }
+    await sleep(Math.min(ra > 0 ? ra * 1000 : 4000 * 2 ** attempt, 60_000));
+  }
+}
+
 // Допълнителни филтри, които API-то може да не приема; при HTTP 400 се махат един по един и се помни кои работят
 const OPTIONAL = ['source_code', 'source', 'available_only'];
 const dropped = new Set<string>();
@@ -150,9 +180,8 @@ function pageUrl(page: number, size: number) {
 
 /** GET на страница от списъка; при 400 махва по един от допълнителните филтри и опитва пак (без филтър се прави само клиентско филтриране). */
 async function getPage(page: number, size: number, timeout = 30_000): Promise<Response> {
-  const h = headers();
   for (;;) {
-    const res = await fetch(pageUrl(page, size), { headers: h, signal: AbortSignal.timeout(timeout) });
+    const res = await cfetch(pageUrl(page, size), timeout);
     if (res.status !== 400) return res;
     const next = OPTIONAL.find((k) => !dropped.has(k));
     if (!next) {
@@ -183,14 +212,15 @@ export async function carapisPreview(size = 2) {
 
 /** Снимки от страницата на конкретна обява (когато списъкът не ги съдържа). */
 export async function fetchCarapisImages(sourceId: string): Promise<string[]> {
-  const res = await fetch(`${baseUrl()}/vehicles/${encodeURIComponent(sourceId)}/`, { headers: headers(), signal: AbortSignal.timeout(20_000) });
+  const res = await cfetch(`${baseUrl()}/vehicles/${encodeURIComponent(sourceId)}/`, 20_000);
+  if (res.status === 429) throw new CarapisRateLimit();
   if (!res.ok) return [];
   return photoUrls((await res.json()) as Raw);
 }
 
 /** Диагностика за обява без снимки. */
 export async function carapisProbe(sourceId: string) {
-  const res = await fetch(`${baseUrl()}/vehicles/${encodeURIComponent(sourceId)}/`, { headers: headers(), signal: AbortSignal.timeout(20_000) });
+  const res = await cfetch(`${baseUrl()}/vehicles/${encodeURIComponent(sourceId)}/`, 20_000);
   const body = await res.text();
   let found = 0;
   try { found = photoUrls(JSON.parse(body) as Raw).length; } catch { /* не е JSON */ }
@@ -205,6 +235,7 @@ export const carapis: ProviderAdapter = {
   fetchImages: fetchCarapisImages,
   async fetchListings(opts) {
     headers(); // проверка за ключа
+    if (Date.now() < cooldownUntil) throw new Error(`Carapis: пауза заради лимит на заявките до ${new Date(cooldownUntil).toLocaleTimeString('bg-BG')}.`);
     const max = opts?.limit ?? limitOf(process.env.CARAPIS_MAX_LISTINGS, 200);
     const maxPages = limitOf(process.env.CARAPIS_MAX_PAGES, 100);
     const out: NormalizedVehicle[] = [];
@@ -216,7 +247,11 @@ export const carapis: ProviderAdapter = {
       const res = await getPage(page, 50);
       if (res.status === 404 && page > 1) break; // страница след последната
       if (res.status === 401 || res.status === 403) throw new Error('Carapis: невалиден ключ или няма достъп (' + res.status + ').');
-      if (res.status === 429) throw new Error('Carapis: надвишен лимит на заявките (429). Опитайте по-късно.');
+      if (res.status === 429) {
+        if (out.length === 0) throw new Error('Carapis: надвишен лимит на заявките (429). Ще опитам отново автоматично след малко.');
+        complete = false; // запазва вече получените обяви и продължава следващия път
+        break;
+      }
       if (!res.ok) throw new Error(`Carapis: HTTP ${res.status}`);
       const json = (await res.json()) as Raw | Raw[];
       const rows = (Array.isArray(json) ? json : (json.results ?? json.data ?? json.items ?? [])) as Raw[];

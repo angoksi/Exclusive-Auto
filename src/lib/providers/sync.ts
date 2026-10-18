@@ -58,7 +58,7 @@ export async function syncProviders(cfg: PricingConfig) {
           if (budget <= 0) break;
           if (have.has(v.sourceId)) continue;
           budget--;
-          try { v.images = await a.fetchImages(v.sourceId); } catch { /* продължава със следващата */ }
+          try { v.images = await a.fetchImages(v.sourceId); } catch (e) { if (e instanceof Error && /429/.test(e.message)) break; /* при лимит спира; иначе продължава със следващата */ }
         }
       }
       for (const v of list) await upsertNormalized(v, cfg, { published: true }); // новите обяви се публикуват веднага
