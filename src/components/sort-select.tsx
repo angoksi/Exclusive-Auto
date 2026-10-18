@@ -19,8 +19,6 @@ export function SortSelect({ value }: { value: string }) {
       }}
     >
       <option value="newest">Най-нови обяви</option>
-      <option value="price_asc">Цена: ниска → висока</option>
-      <option value="price_desc">Цена: висока → ниска</option>
       <option value="year_desc">Година: най-нова</option>
       <option value="year_asc">Година: най-стара</option>
       <option value="km_asc">Пробег: най-нисък</option>

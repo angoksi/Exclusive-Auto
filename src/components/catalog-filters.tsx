@@ -83,7 +83,6 @@ export function CatalogFilters({ values, makeModels, keepParams, loggedIn }: { v
           </Select>
         </Field>
         {range('yearFrom', 'yearTo', 'Година (от / до)', ['2018', '2024'])}
-        {range('priceFrom', 'priceTo', 'Цена в € (от / до)', ['5 000', '40 000'])}
         <Field label="Пробег до (км)"><Input type="number" inputMode="numeric" min={0} placeholder="напр. 80000" value={v.kmMax ?? ''} onChange={(e) => set('kmMax', e.target.value, false)} /></Field>
         {sel('saleType', 'Тип продажба', [['BUY_NOW', 'Фиксирана цена'], ['AUCTION', 'Търг']])}
         {sel('fuel', 'Гориво', FUELS)}
@@ -91,13 +90,12 @@ export function CatalogFilters({ values, makeModels, keepParams, loggedIn }: { v
         {sel('bodyType', 'Тип купе', BODIES)}
         {sel('drive', 'Задвижване', DRIVES)}
         {sel('color', 'Цвят', COLORS)}
-        <details className="group border-t border-line pt-4" open={Boolean(v.condition || v.damage || v.runs || v.location || v.bidFrom || v.bidTo || v.auctionFrom || v.auctionTo)}>
+        <details className="group border-t border-line pt-4" open={Boolean(v.condition || v.damage || v.runs || v.location || v.auctionFrom || v.auctionTo)}>
           <summary className="cursor-pointer list-none text-sm font-semibold text-navy-900">Състояние, търг и локация <span className="text-copper-600 group-open:hidden">+</span><span className="hidden text-copper-600 group-open:inline">−</span></summary>
           <div className="mt-4 space-y-5">
             {sel('condition', 'Състояние', [['NEW', 'Нов'], ['EXCELLENT', 'Отлично'], ['GOOD', 'Добро'], ['FAIR', 'Задоволително'], ['DAMAGED', 'Повреден'], ['SALVAGE', 'Salvage']])}
             {sel('damage', 'Наличие на повреди', [['yes', 'С повреди'], ['no', 'Без повреди']])}
             {sel('runs', 'В движение', [['yes', 'В движение'], ['no', 'Не е в движение']])}
-            {range('bidFrom', 'bidTo', 'Текуща цена на наддаване в € (от / до)', ['0', '20 000'])}
             <Field label="Дата на търга (от / до)">
               <div className="grid grid-cols-2 gap-2">
                 <Input type="date" value={v.auctionFrom ?? ''} onChange={(e) => set('auctionFrom', e.target.value)} />

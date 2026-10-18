@@ -80,7 +80,7 @@ async function main() {
   }
 
   await db.setting.create({ data: { key: 'pricing', value: DEFAULT_PRICING as object } });
-  await db.setting.create({ data: { key: 'site', value: { phone: '+359 88 000 0000', email: 'office@exclusive-auto.example', hours: 'Пон–Пет: 09:00 – 18:00' } } });
+  await db.setting.create({ data: { key: 'site', value: { phone: '+359 896 547 850', phone2: '+359 895 948 420', email: '', hours: 'Пон–Пет: 09:00 – 18:00' } } });
 
   const pw = await hashPassword('Demo!12345');
   const [admin, , customer] = await Promise.all([

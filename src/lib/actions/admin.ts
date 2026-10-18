@@ -324,7 +324,7 @@ export async function deleteDelivery(id: string) { await staff(); await db.compl
 
 export async function saveSite(_: FormState, fd: FormData): Promise<FormState> {
   await admin();
-  const p = z.object({ phone: z.string().trim().min(5).max(40), email: z.string().trim().email(), hours: z.string().trim().min(3).max(80) }).safeParse(Object.fromEntries(fd));
+  const p = z.object({ phone: z.string().trim().min(5).max(40), phone2: z.string().trim().max(40).optional(), email: z.string().trim().email().optional().or(z.literal('')), hours: z.string().trim().min(3).max(80) }).safeParse(Object.fromEntries(fd));
   if (!p.success) return { errors: zodErrors(p.error.issues) };
   await db.setting.upsert({ where: { key: 'site' }, update: { value: p.data }, create: { key: 'site', value: p.data } });
   revalidatePath('/', 'layout');

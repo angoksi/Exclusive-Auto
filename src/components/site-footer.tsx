@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
-import { getSiteInfo } from '@/lib/site';
+import { getSiteInfo, telHref } from '@/lib/site';
 
 const cols = [
   { title: 'Автомобили', links: [['/catalog', 'Всички автомобили'], ['/catalog?saleType=BUY_NOW', 'Фиксирана цена'], ['/find-my-car', 'Намери моя автомобил'], ['/compare', 'Сравнение']] },
@@ -18,8 +18,9 @@ export async function SiteFooter() {
           <Logo light />
           <p className="mt-5 max-w-sm text-sm leading-6">Внос на автомобили от Южна Корея — с ясна цена, внимателна селекция и личен консултант.</p>
           <address className="mt-6 space-y-1 text-sm not-italic">
-            <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="block text-white hover:text-copper-300">{site.phone}</a>
-            <a href={`mailto:${site.email}`} className="block hover:text-white">{site.email}</a>
+            <a href={telHref(site.phone)} className="block text-white hover:text-copper-300">{site.phone}</a>
+            {site.phone2 && <a href={telHref(site.phone2)} className="block text-white hover:text-copper-300">{site.phone2}</a>}
+            {site.email && <a href={`mailto:${site.email}`} className="block hover:text-white">{site.email}</a>}
             <span className="block">{site.hours}</span>
           </address>
         </div>

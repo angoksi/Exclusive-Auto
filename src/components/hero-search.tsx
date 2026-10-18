@@ -42,12 +42,6 @@ export function HeroSearch({ makeModels }: { makeModels: Record<string, string[]
         </Field>
         <Field label="Година от"><Select name="yearFrom" defaultValue=""><option value="">Всички</option>{years.map((y) => <option key={y}>{y}</option>)}</Select></Field>
         <Field label="Година до"><Select name="yearTo" defaultValue=""><option value="">Всички</option>{years.map((y) => <option key={y}>{y}</option>)}</Select></Field>
-        <Field label="Бюджет до (€)">
-          <Select name="priceTo" defaultValue="">
-            <option value="">Без ограничение</option>
-            {[10000, 15000, 20000, 30000, 40000, 60000].map((b) => <option key={b} value={b}>до {new Intl.NumberFormat('bg-BG').format(b)} €</option>)}
-          </Select>
-        </Field>
         <div className="flex items-end"><Button type="submit" variant="copper" size="lg" className="w-full"><Search /> Търси автомобили</Button></div>
       </div>
     </form>

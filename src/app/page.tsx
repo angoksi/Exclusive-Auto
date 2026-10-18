@@ -167,7 +167,7 @@ export default async function Home() {
             <p className="eyebrow">Контакт</p>
             <h2 className="mt-2 text-3xl sm:text-4xl">Разкажете ни какво търсите</h2>
             <p className="mt-3 max-w-md text-muted">Оставете запитване и консултант ще ви предложи конкретни автомобили с пълна разбивка на цената.</p>
-            <ul className="mt-8 space-y-2 text-sm"><li><strong className="text-navy-900">{site.phone}</strong></li><li>{site.email}</li><li className="text-muted">{site.hours}</li></ul>
+            <ul className="mt-8 space-y-2 text-sm"><li><strong className="text-navy-900">{site.phone}</strong></li>{site.phone2 && <li><strong className="text-navy-900">{site.phone2}</strong></li>}{site.email && <li>{site.email}</li>}<li className="text-muted">{site.hours}</li></ul>
           </div>
           <div className="card p-7"><InquiryForm type="CONTACT" user={user} submitLabel="Изпрати" /></div>
         </div>

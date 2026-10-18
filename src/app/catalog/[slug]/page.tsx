@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
 import { getUser } from '@/lib/auth';
 import { getFavoriteIds } from '@/lib/favorites';
-import { getSiteInfo, SITE_NAME, SITE_URL } from '@/lib/site';
+import { getSiteInfo, SITE_NAME, SITE_URL, telHref } from '@/lib/site';
 import { cardInclude } from '@/lib/vehicles';
 import { CONDITION_LABEL, REGION_LABEL, SALE_LABEL, STATUS_LABEL, dateBg, eur, kmToMi, money, num } from '@/lib/format';
 import { STAGES } from '@/lib/stages';
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
   const title = `${v.make} ${v.model}${v.trim ? ' ' + v.trim : ''} ${v.year} — ${REGION_LABEL[v.region]}`;
   return {
     title,
-    description: `${v.year} ${v.make} ${v.model}, ${num(v.odometerKm)} км, ${v.engine}. ${v.priceEur ? `Цена от ${eur(v.priceEur)}. ` : ''}Внос от ${REGION_LABEL[v.region]} с пълна разбивка на крайната цена до България.`,
+    description: `${v.year} ${v.make} ${v.model}, ${num(v.odometerKm)} км, ${v.engine}. Внос от ${REGION_LABEL[v.region]} с пълна разбивка на крайната цена до България.`,
     alternates: { canonical: `/catalog/${v.slug}` },
     openGraph: { title, images: v.images[0] ? [{ url: v.images[0].url }] : undefined },
   };
@@ -41,7 +41,7 @@ export default async function VehiclePage({ params }: P) {
   if (!v) notFound();
   const [user, favs, site] = await Promise.all([getUser(), getFavoriteIds(), getSiteInfo()]);
   const similar = await db.vehicle.findMany({
-    where: { published: true, status: 'AVAILABLE', id: { not: v.id }, region: v.region, priceEur: { gte: Math.round(v.priceEur * 0.6), lte: Math.round(v.priceEur * 1.5) }, OR: [{ bodyType: v.bodyType }, { make: v.make }] },
+    where: { published: true, status: 'AVAILABLE', id: { not: v.id }, region: v.region, OR: [{ bodyType: v.bodyType }, { make: v.make }] },
     orderBy: { year: 'desc' }, take: 3, include: cardInclude,
   });
   const title = `${v.make} ${v.model}${v.trim ? ' ' + v.trim : ''}`;
@@ -72,7 +72,7 @@ export default async function VehiclePage({ params }: P) {
     vehicleIdentificationNumber: v.vin ?? undefined,
     image: v.images.map((i) => (i.url.startsWith('http') ? i.url : SITE_URL + i.url)),
     url: `${SITE_URL}/catalog/${v.slug}`,
-    offers: price ? { '@type': 'Offer', price: v.priceEur, priceCurrency: 'EUR', availability: v.status === 'AVAILABLE' ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut', seller: { '@type': 'Organization', name: SITE_NAME } } : undefined,
+    offers: { '@type': 'Offer', availability: v.status === 'AVAILABLE' ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut', seller: { '@type': 'Organization', name: SITE_NAME } },
   };
 
   return (
@@ -181,11 +181,9 @@ export default async function VehiclePage({ params }: P) {
         <aside className="lg:sticky lg:top-[120px] lg:self-start">
           <div className="card overflow-hidden shadow-lg shadow-navy-900/5">
             <div className="p-6">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">{SALE_LABEL[v.saleType]}{v.saleType === 'AUCTION' ? ' · текуща цена' : ''}</p>
-              <p className="mt-1 text-4xl font-extrabold tracking-tight text-navy-900">{v.priceEur ? eur(v.priceEur) : 'По запитване'}</p>
-              {native != null && v.currency !== 'EUR' && <p className="text-sm text-muted">{money(native, v.currency)}</p>}
-              {v.buyNowPrice != null && v.currentBid != null && <p className="mt-2 text-sm text-ink/80">Фиксирана цена: <strong>{money(v.buyNowPrice, v.currency)}</strong></p>}
-              <p className="mt-2 text-xs text-muted">Цената е без разходите по вноса. Консултант ще изготви пълна оферта за доставка до България.</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted">Цена · {SALE_LABEL[v.saleType]}</p>
+              <p className="mt-1 text-4xl font-extrabold tracking-tight text-navy-900">При запитване</p>
+              <p className="mt-2 text-xs text-muted">Свържете се с консултант за цена и пълна оферта за доставка до България.</p>
               {v.auctionDate && <p className="mt-4 rounded-md bg-mist px-3 py-2 text-sm"><span className="text-muted">Дата на търга:</span> <strong>{dateBg(v.auctionDate, true)}</strong></p>}
             </div>
             <div className="grid gap-2.5 border-t border-line bg-cream/50 p-6">
@@ -194,7 +192,7 @@ export default async function VehiclePage({ params }: P) {
                 <FavoriteButton vehicleId={v.id} initial={favs.has(v.id)} variant="full" />
                 <CompareButton slug={v.slug} variant="full" />
               </div>
-              <Button asChild variant="outline" size="lg"><a href={`tel:${site.phone.replace(/\s/g, '')}`}><Phone /> Свържи се с консултант</a></Button>
+              <Button asChild variant="outline" size="lg"><a href={telHref(site.phone)}><Phone /> Свържи се с консултант</a></Button>
             </div>
           </div>
           <div id="inquiry" className="card mt-5 scroll-mt-32 p-6">

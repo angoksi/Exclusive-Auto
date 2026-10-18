@@ -4,7 +4,7 @@ import { Logo } from '@/components/logo';
 import { MobileNav } from '@/components/mobile-nav';
 import { getUser, STAFF } from '@/lib/auth';
 import { getCompareSlugs } from '@/lib/compare';
-import { getSiteInfo } from '@/lib/site';
+import { getSiteInfo, telHref } from '@/lib/site';
 
 const links = [
   { href: '/how-it-works', label: 'Как работи' },
@@ -25,8 +25,8 @@ export async function SiteHeader() {
       <div className="hidden bg-navy-900 text-[12.5px] text-white/80 md:block">
         <div className="container-x flex h-9 items-center justify-between">
           <span>Директен внос от Южна Корея — с прозрачна цена и личен консултант</span>
-          <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 hover:text-white">
-            <Phone className="size-3.5" /> {site.phone} · {site.hours}
+          <a href={telHref(site.phone)} className="inline-flex items-center gap-2 hover:text-white">
+            <Phone className="size-3.5" /> {site.phone}{site.phone2 ? ` · ${site.phone2}` : ''} · {site.hours}
           </a>
         </div>
       </div>

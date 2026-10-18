@@ -40,18 +40,17 @@ export default async function ComparePage() {
     ['В движение', (v) => (v.runsAndDrives ? 'Да' : 'Не')],
     ['Тип продажба', (v) => SALE_LABEL[v.saleType]],
     ['Дата на търга', (v) => dateBg(v.auctionDate)],
-    ['Цена на автомобила', (v) => (v.priceEur ? eur(v.priceEur) : '—')],
+    ['Цена', () => 'При запитване'],
   ];
 
   // алтернативи в по-нисък бюджет
-  const avg = vehicles.reduce((a, v) => a + v.priceEur, 0) / vehicles.length;
-  const alts = await db.vehicle.findMany({ where: { published: true, status: 'AVAILABLE', slug: { notIn: slugs }, priceEur: { gte: Math.round(avg * 0.4), lte: Math.round(avg * 0.9) } }, take: 3, orderBy: { year: 'desc' }, include: cardInclude });
+  const alts = await db.vehicle.findMany({ where: { published: true, status: 'AVAILABLE', slug: { notIn: slugs }, OR: vehicles.map((v) => ({ make: v.make })) }, take: 3, orderBy: { year: 'desc' }, include: cardInclude });
 
   return (
     <div className="container-x py-12">
       <p className="eyebrow">Сравнение</p>
       <h1 className="mt-2 text-3xl sm:text-4xl">Сравнение на автомобили</h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted">Цените са без разходите по вноса. За пълна оферта се свържете с консултант.</p>
+      <p className="mt-2 max-w-2xl text-sm text-muted">Цените се предоставят при запитване — свържете се с консултант.</p>
       <div className="card mt-8 overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
@@ -78,7 +77,7 @@ export default async function ComparePage() {
       </div>
       {alts.length > 0 && (
         <section className="mt-16">
-          <h2 className="text-2xl">Алтернативи в по-нисък бюджет</h2>
+          <h2 className="text-2xl">Подобни автомобили</h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{alts.map((v) => <VehicleCard key={v.id} v={v} />)}</div>
         </section>
       )}
