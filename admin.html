@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Админ панел – Exclusive Auto Trade</title>
+<link rel="icon" href="assets/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="site-header"></header>
+<main class="wrap adm-wrap" id="app"></main>
+<footer id="site-footer"></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(() => {
+  const app = $('#app');
+  const PW_KEY = 'eat_admin_pw', SESS = 'eat_admin_ok';
+  const FUELS = ['Бензин', 'Дизел', 'Хибрид', 'Електро', 'Газ/Бензин'];
+  const GEARS = ['Автоматик', 'Ръчна'];
+  const BODIES = ['Седан', 'Хечбек', 'Комби', 'SUV', 'Купе', 'Кабрио', 'Ван'];
+  let cars = JSON.parse(JSON.stringify(ALL_CARS));
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // --- Вход (само клиентска защита – вж. бележката в README/съобщението) ---
+  async function hash(s) {
+    if (crypto.subtle) {
+      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('eat:' + s));
+      return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+    let h = 5381; for (const ch of 'eat:' + s) h = ((h << 5) + h + ch.charCodeAt(0)) | 0; return String(h);
+  }
+  const get = k => { try { return localStorage.getItem(k); } catch { return null; } };
+  const sget = k => { try { return sessionStorage.getItem(k); } catch { return null; } };
+
+  function login() {
+    const first = !get(PW_KEY);
+    app.innerHTML = `<div class="panel login"><h2 style="margin-bottom:6px">${first ? 'Създайте парола' : 'Вход'}</h2>
+      <p class="note" style="margin-bottom:14px">${first ? 'Първо стартиране – задайте парола за админ панела (мин. 6 символа).' : 'Въведете парола за админ панела.'}</p>
+      <form class="stack" id="lf"><input type="password" id="pw" placeholder="Парола" required minlength="${first ? 6 : 1}" autocomplete="${first ? 'new-password' : 'current-password'}">
+      <button class="btn primary block">${first ? 'Запази и влез' : 'Влез'}</button><p class="note" id="err" style="color:#e5484d"></p></form></div>`;
+    $('#lf').addEventListener('submit', async e => {
+      e.preventDefault();
+      const h = await hash($('#pw').value);
+      if (first) { try { localStorage.setItem(PW_KEY, h); } catch { /* ignore */ } }
+      else if (h !== get(PW_KEY)) { $('#err').textContent = 'Грешна парола.'; return; }
+      try { sessionStorage.setItem(SESS, '1'); } catch { /* ignore */ }
+      list();
+    });
+  }
+
+  // --- Запис ---
+  function save() {
+    try { localStorage.setItem(CARS_KEY, JSON.stringify(cars)); return true; }
+    catch { alert('Паметта на браузъра е пълна. Премахнете снимки или обяви и опитайте отново.'); return false; }
+  }
+
+  // --- Списък ---
+  function list(q = '') {
+    const rows = cars.filter(c => !q || `${c.brand} ${c.model} ${c.year}`.toLowerCase().includes(q.toLowerCase()))
+      .sort((a, b) => b.id - a.id).map(c => `<tr>
+        <td><div class="th">${carImg(c)}</div></td>
+        <td><b>${esc(c.brand)} ${esc(c.model)}</b><br><span class="note">№ ${c.id} · ${esc(c.city)}</span></td>
+        <td>${c.year}</td><td>${num(c.km)} км</td><td>${money(c.price)}</td>
+        <td><span class="pill${c.hidden ? ' off' : ''}">${c.hidden ? 'Скрита' : 'Активна'}</span></td>
+        <td style="white-space:nowrap"><button class="btn sm" data-act="edit" data-id="${c.id}">Редакция</button>
+          <button class="btn sm" data-act="toggle" data-id="${c.id}">${c.hidden ? 'Покажи' : 'Скрий'}</button>
+          <button class="btn sm danger" data-act="del" data-id="${c.id}">Изтрий</button></td></tr>`).join('');
+    app.innerHTML = `<div class="head"><div><span class="eyebrow">Админ панел</span><h1 style="font-size:1.8rem">Обяви (${cars.length})</h1></div>
+        <button class="btn sm" id="logout">Изход</button></div>
+      <div class="adm-bar">
+        <input id="q" placeholder="Търсене по марка, модел…" value="${esc(q)}">
+        <button class="btn primary" data-act="new">+ Нова обява</button>
+        <button class="btn sm" id="exp">Свали data.js</button>
+        <button class="btn sm" id="imp">Импорт JSON</button>
+        <button class="btn sm danger" id="reset">Върни демо данните</button>
+        <input type="file" id="file" accept="application/json,.json" hidden>
+      </div>
+      <div class="tscroll"><table class="adm"><thead><tr><th></th><th>Автомобил</th><th>Год.</th><th>Пробег</th><th>Цена</th><th>Статус</th><th></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="7" class="empty" style="border:0">Няма обяви.</td></tr>'}</tbody></table></div>
+      <p class="note" style="margin-top:14px">Промените се пазят в този браузър. За да ги видят всички посетители, свалете <b>data.js</b> и го качете на сайта (заменя <code>js/data.js</code>).</p>`;
+    const q$ = $('#q'); q$.addEventListener('input', () => { const p = q$.selectionStart; list(q$.value); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); });
+    $('#logout').onclick = () => { try { sessionStorage.removeItem(SESS); } catch { /* ignore */ } login(); };
+    $('#exp').onclick = exportData;
+    $('#imp').onclick = () => $('#file').click();
+    $('#file').onchange = importData;
+    $('#reset').onclick = () => { if (confirm('Всички промени ще бъдат изтрити и ще се върнат демо обявите. Сигурни ли сте?')) { try { localStorage.removeItem(CARS_KEY); } catch { /* ignore */ } cars = JSON.parse(JSON.stringify(DEFAULT_CARS)); list(); } };
+  }
+  app.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const id = +b.dataset.id, c = cars.find(x => x.id === id);
+    if (b.dataset.act === 'new') form(null);
+    if (b.dataset.act === 'edit') form(c);
+    if (b.dataset.act === 'toggle') { c.hidden = !c.hidden; save(); list($('#q')?.value); }
+    if (b.dataset.act === 'del' && confirm(`Да се изтрие ли „${c.brand} ${c.model}“?`)) { cars = cars.filter(x => x !== c); save(); list(); }
+  });
+
+  // --- Формуляр ---
+  function form(c) {
+    const isNew = !c;
+    c = c || { brand: '', model: '', year: new Date().getFullYear(), price: '', km: '', fuel: 'Дизел', gearbox: 'Автоматик', body: 'Седан', power: '', cc: '', drive: 'Предно', euro: 'Евро 6', color: '', hex: '#1a1a1d', city: 'София', tag: '', features: [], desc: '', imgs: [] };
+    const imgs = [...(c.imgs || [])];
+    const opt = (arr, v) => arr.map(x => `<option${x === v ? ' selected' : ''}>${x}</option>`).join('');
+    const inp = (n, l, t = 'text', ex = '') => `<div><label>${l}</label><input name="${n}" type="${t}" value="${esc(c[n])}" ${ex}></div>`;
+    app.innerHTML = `<div class="head"><h1 style="font-size:1.8rem">${isNew ? 'Нова обява' : `Редакция: ${esc(c.brand)} ${esc(c.model)}`}</h1><button class="btn sm" id="back" type="button">← Назад</button></div>
+    <form class="panel" id="cf"><div class="fgrid">
+      ${inp('brand', 'Марка', 'text', 'required')}${inp('model', 'Модел', 'text', 'required')}${inp('year', 'Година', 'number', 'required min="1950" max="2035"')}
+      ${inp('price', 'Цена (€)', 'number', 'required min="0"')}${inp('km', 'Пробег (км)', 'number', 'required min="0"')}${inp('power', 'Мощност (к.с.)', 'number', 'min="0"')}
+      <div><label>Гориво</label><select name="fuel">${opt(FUELS, c.fuel)}</select></div>
+      <div><label>Скоростна кутия</label><select name="gearbox">${opt(GEARS, c.gearbox)}</select></div>
+      <div><label>Тип</label><select name="body">${opt(BODIES, c.body)}</select></div>
+      ${inp('cc', 'Обем (куб.см)', 'number', 'min="0"')}${inp('drive', 'Задвижване')}${inp('euro', 'Евро стандарт')}
+      ${inp('color', 'Цвят')}<div><label>Цвят на илюстрацията</label><input name="hex" type="color" value="${esc(c.hex)}" style="padding:2px;height:44px"></div>${inp('city', 'Град')}
+      ${inp('tag', 'Етикет (напр. Топ оферта)')}
+      <div class="full"><label>Екипировка (по една на ред)</label><textarea name="features">${esc((c.features || []).join('\n'))}</textarea></div>
+      <div class="full"><label>Описание</label><textarea name="desc">${esc(c.desc)}</textarea></div>
+      <div class="full"><label>Снимки (първата е основна, до 8)</label><div class="imgs" id="imgs"></div>
+        <input type="file" id="up" accept="image/*" multiple style="margin-top:10px"></div>
+      <label class="full" style="text-transform:none;display:flex;gap:8px;align-items:center"><input type="checkbox" name="hidden" style="width:auto"${c.hidden ? ' checked' : ''}> Скрита (не се показва на сайта)</label>
+    </div><div class="actions" style="margin-top:20px"><button class="btn primary" style="flex:none">Запази</button><button class="btn" type="button" id="cancel" style="flex:none">Отказ</button></div></form>`;
+    const drawImgs = () => {
+      $('#imgs').innerHTML = imgs.map((u, i) => `<div class="im"><img src="${u}" alt="">${i ? '' : '<em>основна</em>'}<button type="button" data-rm="${i}" aria-label="Премахни">×</button></div>`).join('');
+      $$('[data-rm]').forEach(b => b.onclick = () => { imgs.splice(+b.dataset.rm, 1); drawImgs(); });
+    };
+    drawImgs();
+    $('#up').onchange = async e => {
+      for (const f of [...e.target.files]) { if (imgs.length >= 8) break; imgs.push(await shrink(f)); }
+      e.target.value = ''; drawImgs();
+    };
+    const back = () => list();
+    $('#back').onclick = $('#cancel').onclick = back;
+    $('#cf').addEventListener('submit', e => {
+      e.preventDefault();
+      const f = new FormData(e.target), g = k => (f.get(k) || '').toString().trim();
+      const n = k => +g(k) || 0;
+      const rec = { id: isNew ? Math.max(0, ...cars.map(x => x.id)) + 1 : c.id, brand: g('brand'), model: g('model'), year: n('year'), price: n('price'), km: n('km'),
+        fuel: g('fuel'), gearbox: g('gearbox'), body: g('body'), power: n('power'), cc: n('cc'), drive: g('drive'), euro: g('euro'), color: g('color'), hex: g('hex'),
+        city: g('city'), tag: g('tag'), features: g('features').split('\n').map(s => s.trim()).filter(Boolean), desc: g('desc'), imgs, hidden: f.has('hidden') };
+      const prev = cars.slice();
+      isNew ? cars.push(rec) : cars[cars.indexOf(c)] = rec;
+      if (!save()) { cars = prev; return; }
+      list();
+    });
+  }
+
+  // Смаляване на снимките, за да се побират в паметта на браузъра
+  function shrink(file, max = 1100) {
+    return new Promise(res => {
+      const r = new FileReader();
+      r.onload = () => {
+        const im = new Image();
+        im.onload = () => {
+          const k = Math.min(1, max / Math.max(im.width, im.height));
+          const cv = document.createElement('canvas'); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k);
+          cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+          res(cv.toDataURL('image/jpeg', .78));
+        };
+        im.src = r.result;
+      };
+      r.readAsDataURL(file);
+    });
+  }
+
+  // --- Експорт / импорт ---
+  function exportData() {
+    const js = `// Обяви, експортирани от админ панела. Заменете с този файл js/data.js\nconst DEFAULT_CARS = ${JSON.stringify(cars, null, 2)};\n`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([js], { type: 'text/javascript' })); a.download = 'data.js'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function importData(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const v = JSON.parse(r.result);
+        if (!Array.isArray(v) || v.some(x => !x.brand || !x.model)) throw 0;
+        v.forEach((x, i) => { x.id = x.id || i + 1; x.features = x.features || []; });
+        if (!confirm(`Ще бъдат заместени всички обяви с ${v.length} от файла. Продължаване?`)) return;
+        const prev = cars; cars = v; if (!save()) cars = prev; list();
+      } catch { alert('Невалиден JSON файл с обяви.'); }
+    };
+    r.readAsText(f);
+  }
+
+  sget(SESS) ? list() : login();
+})();
+</script>
+</body>
+</html>

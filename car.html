@@ -31,7 +31,8 @@
   <div class="detail">
     <div>
       <h1 style="margin-bottom:16px">${c.brand} ${c.model}</h1>
-      <div class="gallery">${carSVG(c, true)}${c.tag ? `<span class="badge">${c.tag}</span>` : ''}</div>
+      <div class="gallery" id="gal">${c.imgs && c.imgs.length ? `<img src="${c.imgs[0]}" alt="${c.brand} ${c.model}">` : carSVG(c, true)}${c.tag ? `<span class="badge">${c.tag}</span>` : ''}</div>
+      ${c.imgs && c.imgs.length > 1 ? `<div class="thumbs">${c.imgs.map((u, i) => `<button type="button" class="${i ? '' : 'on'}" data-i="${i}"><img src="${u}" alt=""></button>`).join('')}</div>` : ''}
       <div class="panel" style="margin-top:20px"><h3 style="margin-bottom:12px">Технически данни</h3>
         <div class="specs">${spec.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div></div>
       <div class="panel"><h3 style="margin-bottom:12px">Екипировка</h3><ul class="tags">${c.features.map(f => `<li>${f}</li>`).join('')}</ul></div>
@@ -63,6 +64,10 @@
   </div>
   <section class="section" style="padding-top:20px"><div class="head"><h2 class="title">Подобни автомобили</h2></div>
     <div class="cards">${similar.map(cardHTML).join('')}</div></section>`;
+  $$('.thumbs button').forEach(b => b.addEventListener('click', () => {
+    $('#gal img').src = c.imgs[b.dataset.i];
+    $$('.thumbs button').forEach(x => x.classList.toggle('on', x === b));
+  }));
   $('.fav-btn').addEventListener('click', e => { setTimeout(() => e.target.textContent = favs.has(c.id) ? '♥ В любими' : '♡ Запази'); });
 })();
 </script>

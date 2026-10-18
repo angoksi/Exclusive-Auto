@@ -1,6 +1,14 @@
 // Общи помощни функции: хедър/футър, любими, карти на обяви, форми.
 const SITE = { name: 'Exclusive Auto Trade', phone: '+359 888 000 000', email: 'office@exclusive-auto.bg', address: 'гр. София, бул. „Примерен“ 1' };
 
+// Обявите идват от админ панела (localStorage); ако няма такива – от js/data.js
+const CARS_KEY = 'eat_cars';
+const ALL_CARS = (() => {
+  try { const v = JSON.parse(localStorage.getItem(CARS_KEY)); if (Array.isArray(v)) return v; } catch { /* ignore */ }
+  return DEFAULT_CARS;
+})();
+const CARS = ALL_CARS.filter(c => !c.hidden);
+
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const money = n => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' €';
@@ -49,10 +57,15 @@ function carSVG(car, big = false) {
 </svg>`;
 }
 
+// Първа снимка на обявата или илюстрация, ако няма качени
+function carImg(c, big = false) {
+  return c.imgs && c.imgs.length ? `<img src="${c.imgs[0]}" alt="${c.brand} ${c.model}" loading="lazy">` : carSVG(c, big);
+}
+
 function cardHTML(c) {
   const on = favs.has(c.id);
   return `<article class="car-card">
-    <a class="car-img" href="car.html?id=${c.id}">${carSVG(c)}${c.tag ? `<span class="badge">${c.tag}</span>` : ''}</a>
+    <a class="car-img" href="car.html?id=${c.id}">${carImg(c)}${c.tag ? `<span class="badge">${c.tag}</span>` : ''}</a>
     <button class="fav${on ? ' on' : ''}" data-fav="${c.id}" aria-label="Любими" aria-pressed="${on}">♥</button>
     <div class="car-body">
       <h3><a href="car.html?id=${c.id}">${c.brand} ${c.model}</a></h3>
@@ -95,7 +108,7 @@ function layout() {
     <div><h4>Контакти</h4><p>${SITE.address}<br><a href="tel:${SITE.phone.replace(/\s/g, '')}">${SITE.phone}</a><br><a href="mailto:${SITE.email}">${SITE.email}</a></p></div>
     <div><h4>Работно време</h4><p>Понеделник – Събота<br>09:00 – 18:30<br>Неделя – почивен ден</p></div>
   </div>
-  <div class="copy wrap">© ${new Date().getFullYear()} ${SITE.name}. Всички права запазени.</div>`;
+  <div class="copy wrap">© ${new Date().getFullYear()} ${SITE.name}. Всички права запазени. · <a href="admin.html">Админ</a></div>`;
   $('.burger').addEventListener('click', e => {
     const o = $('#nav').classList.toggle('open');
     e.currentTarget.setAttribute('aria-expanded', o);
