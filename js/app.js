@@ -85,7 +85,16 @@ document.addEventListener('click', e => {
   document.dispatchEvent(new CustomEvent('favchange'));
 });
 
-const NAV = [['index.html', 'Начало'], ['cars.html', 'Автомобили'], ['finance.html', 'Лизинг и кредит'], ['sell.html', 'Изкупуване'], ['contact.html', 'Контакти']];
+// Векторно лого: златна наклонена „E“ с линия на автомобил + модерна типография
+function logoHTML() {
+  return `<span class="logo"><svg class="logo-mark" viewBox="0 0 120 84" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3dca0"/><stop offset=".55" stop-color="#d4af6a"/><stop offset="1" stop-color="#9c7a36"/></linearGradient></defs>
+    <g fill="url(#lg)"><polygon points="16,66 42,4 56,4 30,66"/><polygon points="42,4 114,4 106,17 49,17"/><polygon points="36,28 100,28 94,39 31,39"/></g>
+    <path d="M4 70 C26 52 66 46 100 58 L116 68" fill="none" stroke="#d4af6a" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="40" cy="70" r="7" fill="none" stroke="#d4af6a" stroke-width="2.6"/><circle cx="92" cy="68" r="7" fill="none" stroke="#d4af6a" stroke-width="2.6"/></svg>
+    <span class="logo-text"><b>EXCLUSIVE</b><small>AUTO TRADE</small></span></span>`;
+}
+
+const NAV = [['index.html', 'Начало'], ['cars.html', 'Автомобили'], ['contact.html', 'Контакти']];
 
 function layout() {
   const page = location.pathname.split('/').pop() || 'index.html';
@@ -96,14 +105,14 @@ function layout() {
     <span><a href="tel:${SITE.phone.replace(/\s/g, '')}">${SITE.phone}</a> · <a href="mailto:${SITE.email}">${SITE.email}</a></span>
   </div></div>
   <div class="mainbar"><div class="wrap">
-    <a class="brand" href="index.html"><img src="assets/logo.jpg" alt="${SITE.name}"></a>
+    <a class="brand" href="index.html" aria-label="${SITE.name}">${logoHTML()}</a>
     <nav id="nav">${links}</nav>
     <a class="fav-link" href="cars.html?fav=1" aria-label="Любими">♥<b data-fav-count hidden>0</b></a>
     <button class="burger" aria-label="Меню" aria-expanded="false">☰</button>
   </div></div>`;
   $('#site-footer').innerHTML = `
   <div class="wrap grid">
-    <div><img class="flogo" src="assets/logo.jpg" alt="${SITE.name}"><p>Селектирани автомобили с проверена история, прозрачни цени и пълна подкрепа при покупка, лизинг и изкупуване.</p></div>
+    <div>${logoHTML()}<p style="margin-top:12px">Селектирани автомобили с проверена история, прозрачни цени и пълна подкрепа при покупка.</p></div>
     <div><h4>Навигация</h4>${links}</div>
     <div><h4>Контакти</h4><p>${SITE.address}<br><a href="tel:${SITE.phone.replace(/\s/g, '')}">${SITE.phone}</a><br><a href="mailto:${SITE.email}">${SITE.email}</a></p></div>
     <div><h4>Работно време</h4><p>Понеделник – Събота<br>09:00 – 18:30<br>Неделя – почивен ден</p></div>

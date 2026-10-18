@@ -31,10 +31,15 @@ h2.title{font-size:clamp(1.5rem,3vw,2.1rem);margin-bottom:.4rem}
 .topbar{background:#000;border-bottom:1px solid var(--line);font-size:.8rem;color:var(--muted)}
 .topbar .wrap{display:flex;justify-content:space-between;gap:12px;padding:8px 0;flex-wrap:wrap}
 .topbar a:hover{color:var(--gold)}
-#site-header{position:sticky;top:0;z-index:50;background:rgba(11,11,12,.92);backdrop-filter:blur(10px)}
+#site-header{position:sticky;top:0;z-index:50;background:rgba(11,11,12,.78);backdrop-filter:blur(16px) saturate(1.4)}
 .mainbar{border-bottom:1px solid var(--line)}
-.mainbar .wrap{display:flex;align-items:center;gap:24px;padding:8px 0}
-.brand img{height:64px;width:auto;mix-blend-mode:lighten}
+.mainbar .wrap{display:flex;align-items:center;gap:24px;padding:14px 0}
+.logo{display:inline-flex;align-items:center;gap:14px}
+.logo-mark{height:62px;width:auto;filter:drop-shadow(0 4px 14px rgba(212,175,106,.35))}
+.logo-text{display:flex;flex-direction:column;line-height:1}
+.logo-text b{font-size:1.7rem;font-weight:800;letter-spacing:.16em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo-text small{margin-top:7px;font-size:.72rem;font-weight:500;letter-spacing:.62em;color:var(--muted);padding-left:2px}
+#site-footer .logo-mark{height:54px}#site-footer .logo-text b{font-size:1.4rem}
 #nav{display:flex;gap:6px;margin-left:auto}
 #nav a{padding:10px 14px;border-radius:999px;font-size:.9rem;font-weight:500;color:var(--muted);transition:.2s}
 #nav a:hover,#nav a.active{color:var(--gold);background:rgba(212,175,106,.08)}
@@ -155,7 +160,6 @@ form.stack{display:grid;gap:12px}
 #site-footer h4{color:var(--text);margin-bottom:12px}
 #site-footer .grid>div>a{display:block;padding:3px 0}
 #site-footer a:hover{color:var(--gold)}
-.flogo{height:90px;width:auto;mix-blend-mode:lighten;margin:-10px 0 6px -8px}
 .copy{border-top:1px solid var(--line);margin-top:36px;padding:18px 0;font-size:.8rem}
 
 @media(max-width:980px){
@@ -170,6 +174,7 @@ form.stack{display:grid;gap:12px}
   #site-footer .grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:760px){
+  .logo-mark{height:46px}.logo-text b{font-size:1.2rem}.logo-text small{font-size:.58rem;letter-spacing:.5em}
   .burger{display:block;margin-left:auto}
   .fav-link{order:2}
   #nav{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px;margin:0}

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Автомобил – Exclusive Auto Trade</title>
-<link rel="icon" href="assets/logo.jpg">
+<link rel="icon" href="assets/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -25,7 +25,6 @@
   const spec = [['Година', c.year], ['Пробег', num(c.km) + ' км'], ['Гориво', c.fuel], ['Скорости', c.gearbox], ['Мощност', c.power + ' к.с.'],
     ['Обем', c.cc ? num(c.cc) + ' куб.см' : '—'], ['Задвижване', c.drive], ['Euro', c.euro], ['Тип', c.body], ['Цвят', c.color], ['Град', c.city], ['Реф. №', 'EAT-' + String(c.id).padStart(4, '0')]];
   const similar = CARS.filter(x => x.id !== c.id && (x.brand === c.brand || x.body === c.body)).slice(0, 3);
-  const monthly = (c.price * .8 * (0.07 / 12)) / (1 - Math.pow(1 + 0.07 / 12, -60));
   root.innerHTML = `
   <div class="crumbs" style="padding-top:28px"><a href="index.html">Начало</a> / <a href="cars.html">Автомобили</a> / ${c.brand} ${c.model}</div>
   <div class="detail">
@@ -42,12 +41,11 @@
       <div class="panel">
         <div class="note">Цена с ДДС</div>
         <div class="big-price">${money(c.price)}</div>
-        <div class="note">от ~${money(Math.round(monthly))} / месец при лизинг (20% самоучастие, 60 мес., ориентировъчно)</div>
         <div class="actions">
           <a class="btn primary" href="tel:${SITE.phone.replace(/\s/g, '')}">Обади се</a>
           <button class="btn fav-btn" data-fav="${c.id}" type="button">${on ? '♥ В любими' : '♡ Запази'}</button>
         </div>
-        <div class="actions" style="margin-top:10px"><a class="btn" href="finance.html?price=${c.price}">Калкулатор</a><button class="btn" onclick="print()" type="button">Принтирай</button></div>
+        <div class="actions" style="margin-top:10px"><button class="btn" onclick="print()" type="button">Принтирай</button></div>
       </div>
       <div class="panel">
         <h3 style="margin-bottom:12px">Запитване за този автомобил</h3>
