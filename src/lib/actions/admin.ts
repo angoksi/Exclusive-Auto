@@ -150,6 +150,13 @@ export async function probeMissingPhotos(): Promise<FormState> {
     return fail(e);
   }
 }
+export async function fillPhotosNow(): Promise<FormState> {
+  await staff();
+  const { fillMissingPhotos } = await import('@/lib/providers/auto-sync');
+  const n = await fillMissingPhotos();
+  revalidatePath('/catalog'); revalidatePath('/admin/vehicles');
+  return { ok: true, message: n ? `Допълнени снимки на ${n} обяви. Натиснете пак за следващата порция.` : 'Няма обяви за допълване в момента (или Carapis няма снимки за останалите).' };
+}
 export async function publishAllVehicles(): Promise<FormState> {
   await staff();
   const r = await db.vehicle.updateMany({ where: { published: false }, data: { published: true } });
