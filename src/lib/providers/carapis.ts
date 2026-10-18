@@ -8,7 +8,7 @@ import type { Source } from '@/generated/prisma/enums';
  *
  * Променливи: CARAPIS_API_KEY (задължителна), CARAPIS_API_URL (по подразбиране https://api.carapis.com/apix/catalog_api),
  * CARAPIS_SOURCE (платформи по source_code, по подразбиране "encar"), CARAPIS_QUERY (допълнителни филтри),
- * CARAPIS_MAX_LISTINGS (по подразбиране 200), CARAPIS_DETAIL_LIMIT (снимки от детайла на обява, по подразбиране 50 на синхронизация).
+ * CARAPIS_MAX_LISTINGS (по подразбиране 200), CARAPIS_MAX_PAGES (макс. страници по 50 за една синхронизация, по подразбиране 100), CARAPIS_DETAIL_LIMIT (снимки от детайла на обява, по подразбиране 50 на синхронизация).
  */
 type Raw = Record<string, unknown>;
 
@@ -216,7 +216,7 @@ export const carapis: ProviderAdapter = {
       }
       const hasNext = !Array.isArray(json) && Boolean(json.next);
       if (!rows.length || !hasNext) break;
-      if (out.length >= max || page >= 60) { complete = false; break; }
+      if (out.length >= max || page >= Number(process.env.CARAPIS_MAX_PAGES ?? 100)) { complete = false; break; }
       page++;
     }
     return Object.assign(out, { complete }) as Listings;
