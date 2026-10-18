@@ -20,6 +20,11 @@ const BODY: Record<string, string> = { sedan: 'Седан', suv: 'SUV', hatchbac
 
 const COLOR: Record<string, string> = { white: 'Бял', black: 'Черен', gray: 'Сив', grey: 'Сив', silver: 'Сребрист', blue: 'Син', red: 'Червен', green: 'Зелен', beige: 'Бежов', brown: 'Кафяв' };
 
+const urls = (v: unknown): string[] => {
+  if (!Array.isArray(v)) return [];
+  return v.map((x) => (typeof x === 'string' ? x : text(get(x as Raw, ['url', 'src', 'image', 'photo', 'original', 'large']))) ?? '').filter((u) => /^https:\/\//.test(u));
+};
+
 const get = (o: Raw, keys: string[]): unknown => {
   for (const k of keys) {
     const v = o[k];
@@ -62,7 +67,7 @@ export function mapCarapis(r: Raw): NormalizedVehicle | null {
     drive: text(get(r, ['drive', 'drive_type', 'drivetrain'])) ?? '—', bodyType: BODY[body] ?? '—', color: ((c) => (c ? COLOR[c.toLowerCase()] ?? c : '—'))(text(get(r, ['color', 'colour', 'exterior_color']))),
     condition: 'GOOD', runsAndDrives: true, hasKeys: true,
     description: `${year} ${make} ${model}${trim ? ' ' + trim : ''}. Свържете се с консултант за пълна информация, снимки и оферта за доставка.`,
-    images: [], // снимките от източника не се копират и не се показват; качват се ръчно от админ панела
+    images: urls(get(r, ['photos', 'images', 'photo_urls', 'image_urls', 'pictures', 'photo', 'image'])).slice(0, 12), // показват се през нашия адрес /api/photo
   };
 }
 

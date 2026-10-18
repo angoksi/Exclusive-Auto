@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { slugify } from '@/lib/utils';
 import { toEur } from '@/lib/price-eur';
+import { signedPhotoUrl } from '@/lib/photo-proxy';
 import { ADAPTERS } from './adapters';
 import type { NormalizedVehicle } from './types';
 import type { PricingConfig } from '@/lib/pricing';
@@ -18,14 +19,21 @@ export async function upsertNormalized(v: NormalizedVehicle, cfg: PricingConfig,
     description: v.description, features: v.features ?? [],
   };
   const existing = await db.vehicle.findFirst({ where: { source: v.source, sourceId: v.sourceId }, select: { id: true } });
+  const imageRows = v.images.map((url, position) => ({ url: url.startsWith('https://') ? signedPhotoUrl(url) : url, position }));
   if (existing) {
     await db.vehicle.update({ where: { id: existing.id }, data });
+    if (imageRows.length) {
+      // обновява само снимките, дошли от синхронизация; качените ръчно (/uploads) не се пипат
+      const manual = await db.vehicleImage.count({ where: { vehicleId: existing.id, NOT: { url: { startsWith: '/api/photo' } } } });
+      await db.vehicleImage.deleteMany({ where: { vehicleId: existing.id, url: { startsWith: '/api/photo' } } });
+      await db.vehicleImage.createMany({ data: imageRows.map((r) => ({ vehicleId: existing.id, url: r.url, position: manual + r.position })) });
+    }
     return existing.id;
   }
   const created = await db.vehicle.create({
     data: {
       ...data, slug, published: opts.published ?? true,
-      images: { create: v.images.map((url, position) => ({ url, position })) },
+      images: { create: imageRows },
       history: { create: (v.history ?? []).map((h) => ({ date: h.date, type: h.type, description: h.description, odometerKm: h.odometerKm ?? null, source: h.source ?? null })) },
     },
   });
@@ -41,8 +49,7 @@ export async function syncProviders(cfg: PricingConfig) {
     }
     try {
       const list = await a.fetchListings();
-      const published = process.env.SYNC_PUBLISH !== 'false'; // SYNC_PUBLISH=false — новите обяви се създават скрити
-      for (const v of list) await upsertNormalized(v, cfg, { published });
+      for (const v of list) await upsertNormalized(v, cfg, { published: true }); // новите обяви се публикуват веднага
       // Обява, която я няма в пълния списък от доставчика, вече не е налична
       let archived = 0;
       if (list.complete && list.length > 0) {

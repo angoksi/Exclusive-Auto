@@ -136,6 +136,12 @@ export async function runSync(): Promise<FormState> {
   revalidatePath('/admin/vehicles');
   return { ok: true, message: rep.map((r) => `${r.provider}: ${r.status === 'ok' ? `${r.count} обяви` : r.message}`).join(' · ') };
 }
+export async function publishAllVehicles(): Promise<FormState> {
+  await staff();
+  const r = await db.vehicle.updateMany({ where: { published: false }, data: { published: true } });
+  revalidatePath('/catalog'); revalidatePath('/admin/vehicles'); revalidatePath('/');
+  return { ok: true, message: `Публикувани автомобили: ${r.count}` };
+}
 export async function testCarapis(): Promise<FormState> {
   await staff();
   try {
