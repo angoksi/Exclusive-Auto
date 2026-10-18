@@ -5,5 +5,8 @@ export async function register() {
     if (await ensureSchema()) console.log('[eat] Таблиците са създадени автоматично.');
   } catch (e) {
     console.error('[eat] Неуспешно създаване на таблиците:', e instanceof Error ? e.message : e);
+    return;
   }
+  const { startAutoSync } = await import('@/lib/providers/auto-sync');
+  startAutoSync();
 }
