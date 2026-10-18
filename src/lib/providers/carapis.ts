@@ -20,10 +20,19 @@ const BODY: Record<string, string> = { sedan: 'Седан', suv: 'SUV', hatchbac
 
 const COLOR: Record<string, string> = { white: 'Бял', black: 'Черен', gray: 'Сив', grey: 'Сив', silver: 'Сребрист', blue: 'Син', red: 'Червен', green: 'Зелен', beige: 'Бежов', brown: 'Кафяв' };
 
-const urls = (v: unknown): string[] => {
-  if (!Array.isArray(v)) return [];
-  return v.map((x) => (typeof x === 'string' ? x : text(get(x as Raw, ['url', 'src', 'image', 'photo', 'original', 'large']))) ?? '').filter((u) => /^https:\/\//.test(u));
-};
+/** Търси адреси на снимки навсякъде в отговора: полета с име photo/image/picture/thumb или адреси, завършващи на jpg/png/webp. */
+function deepImageUrls(root: unknown): string[] {
+  const out = new Set<string>();
+  const walk = (v: unknown, hint: boolean, depth: number) => {
+    if (depth > 6 || out.size >= 12) return;
+    if (typeof v === 'string') {
+      if (/^https:\/\//.test(v) && (hint || /\.(jpe?g|png|webp)(\?|$)/i.test(v)) && !/\.(svg|gif)(\?|$)/i.test(v)) out.add(v);
+    } else if (Array.isArray(v)) v.forEach((x) => walk(x, hint, depth + 1));
+    else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, hint || /photo|image|img|picture|thumb/i.test(k), depth + 1);
+  };
+  walk(root, false, 0);
+  return [...out];
+}
 
 const get = (o: Raw, keys: string[]): unknown => {
   for (const k of keys) {
@@ -67,7 +76,7 @@ export function mapCarapis(r: Raw): NormalizedVehicle | null {
     drive: text(get(r, ['drive', 'drive_type', 'drivetrain'])) ?? '—', bodyType: BODY[body] ?? '—', color: ((c) => (c ? COLOR[c.toLowerCase()] ?? c : '—'))(text(get(r, ['color', 'colour', 'exterior_color']))),
     condition: 'GOOD', runsAndDrives: true, hasKeys: true,
     description: `${year} ${make} ${model}${trim ? ' ' + trim : ''}. Свържете се с консултант за пълна информация, снимки и оферта за доставка.`,
-    images: urls(get(r, ['photos', 'images', 'photo_urls', 'image_urls', 'pictures', 'photo', 'image'])).slice(0, 12), // показват се през нашия адрес /api/photo
+    images: deepImageUrls(r), // показват се през нашия адрес /api/photo
   };
 }
 
@@ -88,9 +97,24 @@ function pageUrl(page: number, size: number) {
 
 /** Суров отговор (първите няколко обяви) за проверка на формата — вика се от админ панела. */
 export async function carapisPreview(size = 2) {
-  const res = await fetch(pageUrl(1, size), { headers: headers(), signal: AbortSignal.timeout(20_000) });
+  const h = headers();
+  const res = await fetch(pageUrl(1, size), { headers: h, signal: AbortSignal.timeout(20_000) });
   const body = await res.text();
-  return { status: res.status, body: body.slice(0, 8000) };
+  let summary = '';
+  try {
+    const json = JSON.parse(body) as { results?: Raw[] } | Raw[];
+    const rows = Array.isArray(json) ? json : json.results ?? [];
+    const first = rows[0];
+    const id = first ? text(get(first, ['id', 'uuid', 'external_id', 'listing_id', 'pk'])) : undefined;
+    summary = `Обяви в отговора: ${rows.length}. Снимки в списъка (първата обява): ${first ? deepImageUrls(first).length : 0}.`;
+    if (id) {
+      const d = await fetch(`${baseUrl()}/vehicles/${encodeURIComponent(id)}/`, { headers: h, signal: AbortSignal.timeout(20_000) });
+      summary += d.ok ? ` Снимки в детайла на обявата: ${deepImageUrls(await d.json()).length}.` : ` Детайл: HTTP ${d.status}.`;
+    }
+  } catch {
+    /* остава само суровият отговор */
+  }
+  return { status: res.status, body: `${summary}\n\n${body}`.slice(0, 8000) };
 }
 
 export const carapis: ProviderAdapter = {
@@ -119,6 +143,18 @@ export const carapis: ProviderAdapter = {
       if (!rows.length || !hasNext) break;
       if (out.length >= max) { complete = false; break; }
       page++;
+    }
+    // Ако списъкът не съдържа снимки, взема ги от страницата на самата обява (ограничено на синхронизация, за да не се изчерпва лимитът)
+    let budget = Number(process.env.CARAPIS_DETAIL_LIMIT ?? 25);
+    for (const v of out) {
+      if (v.images.length || budget <= 0) continue;
+      budget--;
+      try {
+        const res = await fetch(`${baseUrl()}/vehicles/${encodeURIComponent(v.sourceId)}/`, { headers: h, signal: AbortSignal.timeout(20_000) });
+        if (res.ok) v.images = deepImageUrls(await res.json());
+      } catch {
+        /* продължава със следващата */
+      }
     }
     return Object.assign(out, { complete }) as Listings;
   },
