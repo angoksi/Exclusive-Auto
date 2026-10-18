@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Лизинг и кредит – Exclusive Auto Trade</title>
+<link rel="icon" href="assets/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="site-header"></header>
+<main>
+<div class="page-head"><div class="wrap"><div class="crumbs"><a href="index.html">Начало</a> / Лизинг и кредит</div><h1>Лизинг и кредит</h1><p class="sub">Изчислете ориентировъчна месечна вноска и изпратете заявка за одобрение.</p></div></div>
+<div class="wrap section two">
+  <div class="panel">
+    <h3 style="margin-bottom:16px">Калкулатор</h3>
+    <div class="stack" style="display:grid;gap:16px">
+      <div><label for="price">Цена на автомобила (€)</label><input id="price" type="number" min="1000" step="500" value="30000"></div>
+      <div><label for="down">Самоучастие: <b id="downv">20</b>%</label><input class="range" id="down" type="range" min="0" max="70" step="5" value="20"></div>
+      <div><label for="term">Срок: <b id="termv">60</b> месеца</label><input class="range" id="term" type="range" min="12" max="96" step="12" value="60"></div>
+      <div><label for="rate">Годишна лихва: <b id="ratev">7</b>%</label><input class="range" id="rate" type="range" min="3" max="15" step="0.5" value="7"></div>
+    </div>
+    <div class="result"><span class="note">Месечна вноска</span><b id="monthly">—</b></div>
+    <div style="margin-top:14px"><div class="sumline"><span>Първоначална вноска</span><strong id="s-down"></strong></div><div class="sumline"><span>Сума за финансиране</span><strong id="s-fin"></strong></div><div class="sumline"><span>Обща сума за плащане</span><strong id="s-total"></strong></div></div>
+    <p class="note" style="margin-top:12px">Изчислението е ориентировъчно и не представлява обвързваща оферта.</p>
+  </div>
+  <div>
+    <div class="panel">
+      <h3 style="margin-bottom:12px">Заявка за лизинг</h3>
+      <form class="stack" data-form>
+        <input name="name" placeholder="Име и фамилия" required autocomplete="name">
+        <input name="phone" type="tel" placeholder="Телефон" required autocomplete="tel">
+        <input name="email" type="email" placeholder="Имейл" autocomplete="email">
+        <select name="car"><option value="">Автомобил (по желание)</option></select>
+        <textarea name="msg" placeholder="Допълнителна информация"></textarea>
+        <button class="btn primary block" type="submit">Изпрати заявка</button>
+      </form>
+      <div class="form-ok" hidden><b>Заявката е изпратена!</b>Ще ви потърсим с индивидуална оферта.</div>
+    </div>
+    <div class="panel"><h3 style="margin-bottom:12px">Как работи</h3>
+      <ol class="steps"><li><div><b>Избирате автомобил</b><p class="note">Намерете модела в каталога ни.</p></div></li><li><div><b>Подавате заявка</b><p class="note">Само лична карта и доказателство за доходи.</p></div></li><li><div><b>Получавате одобрение</b><p class="note">Обикновено до 24 часа.</p></div></li><li><div><b>Взимате ключовете</b><p class="note">Подписване и вземане на автомобила.</p></div></li></ol></div>
+  </div>
+</div>
+</main>
+<footer id="site-footer"></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(() => {
+  const g = id => $('#' + id);
+  const sel = $('select[name=car]');
+  CARS.forEach(c => sel.add(new Option(`${c.brand} ${c.model} (${c.year}) – ${money(c.price)}`, c.id)));
+  const pp = +new URLSearchParams(location.search).get('price'); if (pp) g('price').value = pp;
+  function calc() {
+    const price = +g('price').value || 0, d = +g('down').value, n = +g('term').value, r = +g('rate').value / 100 / 12;
+    const down = price * d / 100, fin = price - down;
+    const m = r ? fin * r / (1 - Math.pow(1 + r, -n)) : fin / n;
+    g('downv').textContent = d; g('termv').textContent = n; g('ratev').textContent = g('rate').value;
+    g('monthly').textContent = money(Math.round(m));
+    g('s-down').textContent = money(Math.round(down)); g('s-fin').textContent = money(Math.round(fin)); g('s-total').textContent = money(Math.round(down + m * n));
+  }
+  ['price', 'down', 'term', 'rate'].forEach(i => g(i).addEventListener('input', calc)); calc();
+})();
+</script>
+</body></html>

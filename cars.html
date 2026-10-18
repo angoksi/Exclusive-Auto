@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Автомобили в наличност – Exclusive Auto Trade</title>
+<link rel="icon" href="assets/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="site-header"></header>
+<main>
+  <div class="page-head"><div class="wrap">
+    <div class="crumbs"><a href="index.html">Начало</a> / Автомобили</div>
+    <h1 id="h1">Автомобили в наличност</h1>
+  </div></div>
+  <div class="wrap catalog">
+    <aside class="filters" id="filters">
+      <div><label for="f-q">Търсене</label><input id="f-q" placeholder="напр. BMW 530"></div>
+      <div><label for="f-brand">Марка</label><select id="f-brand"><option value="">Всички</option></select></div>
+      <div><label for="f-model">Модел</label><select id="f-model"><option value="">Всички</option></select></div>
+      <div class="row">
+        <div><label for="f-pmin">Цена от (€)</label><input id="f-pmin" type="number" min="0" step="1000"></div>
+        <div><label for="f-pmax">Цена до (€)</label><input id="f-pmax" type="number" min="0" step="1000"></div>
+      </div>
+      <div class="row">
+        <div><label for="f-ymin">Година от</label><input id="f-ymin" type="number" min="2000" max="2030"></div>
+        <div><label for="f-kmax">Пробег до (км)</label><input id="f-kmax" type="number" min="0" step="10000"></div>
+      </div>
+      <div><label for="f-fuel">Гориво</label><select id="f-fuel"><option value="">Всички</option></select></div>
+      <div><label for="f-gearbox">Скоростна кутия</label><select id="f-gearbox"><option value="">Всички</option></select></div>
+      <div><label for="f-body">Тип</label><select id="f-body"><option value="">Всички</option></select></div>
+      <div><label for="f-city">Град</label><select id="f-city"><option value="">Всички</option></select></div>
+      <label style="display:flex;gap:8px;align-items:center;text-transform:none;font-size:.85rem"><input id="f-fav" type="checkbox" style="width:auto"> Само любими</label>
+      <button class="btn" id="reset" type="button">Изчисти филтрите</button>
+    </aside>
+    <section>
+      <div class="toolbar">
+        <div><button class="btn filter-toggle" id="ftoggle" type="button">Филтри</button> <span id="count" class="sub"></span></div>
+        <div><label for="sort" style="display:inline;margin-right:8px">Подреди по</label>
+          <select id="sort">
+            <option value="new">Най-нови</option>
+            <option value="pasc">Цена: ниска → висока</option>
+            <option value="pdesc">Цена: висока → ниска</option>
+            <option value="year">Година: най-нова</option>
+            <option value="km">Пробег: най-малък</option>
+          </select></div>
+      </div>
+      <div class="cards" id="list"></div>
+    </section>
+  </div>
+</main>
+<footer id="site-footer"></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(() => {
+  const ids = ['q', 'brand', 'model', 'pmin', 'pmax', 'ymin', 'kmax', 'fuel', 'gearbox', 'body', 'city'];
+  const el = Object.fromEntries([...ids, 'fav', 'sort'].map(i => [i, $('#f-' + i) || $('#' + i)]));
+  const uniq = k => [...new Set(CARS.map(c => c[k]))].sort();
+  const fill = (s, v) => v.forEach(x => s.add(new Option(x, x)));
+  ['brand', 'fuel', 'gearbox', 'body', 'city'].forEach(k => fill(el[k], uniq(k)));
+  const models = () => { el.model.length = 1; fill(el.model, [...new Set(CARS.filter(c => !el.brand.value || c.brand === el.brand.value).map(c => c.model))]); };
+  models();
+
+  // стойности от URL (идват от началната страница)
+  const p = new URLSearchParams(location.search);
+  ['brand'].forEach(k => p.get(k) && (el[k].value = p.get(k)));
+  models();
+  if (p.get('model')) el.model.value = p.get('model');
+  ['fuel', 'body', 'gearbox', 'city'].forEach(k => p.get(k) && (el[k].value = p.get(k)));
+  if (p.get('yearMin')) el.ymin.value = p.get('yearMin');
+  if (p.get('priceMax')) el.pmax.value = p.get('priceMax');
+  if (p.get('fav')) el.fav.checked = true;
+
+  const sorts = { new: (a, b) => b.id - a.id, pasc: (a, b) => a.price - b.price, pdesc: (a, b) => b.price - a.price, year: (a, b) => b.year - a.year, km: (a, b) => a.km - b.km };
+  function render() {
+    const v = k => el[k].value.trim();
+    const q = v('q').toLowerCase(), fl = favs.list();
+    const res = CARS.filter(c =>
+      (!q || `${c.brand} ${c.model} ${c.year}`.toLowerCase().includes(q)) &&
+      (!v('brand') || c.brand === v('brand')) && (!v('model') || c.model === v('model')) &&
+      (!v('pmin') || c.price >= +v('pmin')) && (!v('pmax') || c.price <= +v('pmax')) &&
+      (!v('ymin') || c.year >= +v('ymin')) && (!v('kmax') || c.km <= +v('kmax')) &&
+      (!v('fuel') || c.fuel === v('fuel')) && (!v('gearbox') || c.gearbox === v('gearbox')) &&
+      (!v('body') || c.body === v('body')) && (!v('city') || c.city === v('city')) &&
+      (!el.fav.checked || fl.includes(c.id))
+    ).sort(sorts[el.sort.value]);
+    $('#count').textContent = `Намерени: ${res.length}`;
+    $('#list').innerHTML = res.length ? res.map(cardHTML).join('') :
+      '<div class="empty" style="grid-column:1/-1"><h3>Няма резултати</h3><p>Опитайте с по-малко филтри.</p></div>';
+  }
+  ids.forEach(i => el[i].addEventListener('input', render));
+  el.brand.addEventListener('change', () => { models(); render(); });
+  el.fav.addEventListener('change', render);
+  el.sort.addEventListener('change', render);
+  document.addEventListener('favchange', () => el.fav.checked && render());
+  $('#reset').addEventListener('click', () => { ids.forEach(i => el[i].value = ''); el.fav.checked = false; models(); render(); });
+  $('#ftoggle').addEventListener('click', () => $('#filters').classList.toggle('open'));
+  render();
+})();
+</script>
+</body>
+</html>

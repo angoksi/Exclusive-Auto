@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Автомобил – Exclusive Auto Trade</title>
+<link rel="icon" href="assets/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="site-header"></header>
+<main class="wrap" id="root"></main>
+<footer id="site-footer"></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(() => {
+  const id = +new URLSearchParams(location.search).get('id');
+  const c = CARS.find(x => x.id === id);
+  const root = $('#root');
+  if (!c) { root.innerHTML = '<div class="empty" style="margin:60px 0"><h2>Автомобилът не е намерен</h2><p><a class="link" href="cars.html">← Към всички автомобили</a></p></div>'; return; }
+  document.title = `${c.brand} ${c.model} ${c.year} – Exclusive Auto Trade`;
+  const on = favs.has(c.id);
+  const spec = [['Година', c.year], ['Пробег', num(c.km) + ' км'], ['Гориво', c.fuel], ['Скорости', c.gearbox], ['Мощност', c.power + ' к.с.'],
+    ['Обем', c.cc ? num(c.cc) + ' куб.см' : '—'], ['Задвижване', c.drive], ['Euro', c.euro], ['Тип', c.body], ['Цвят', c.color], ['Град', c.city], ['Реф. №', 'EAT-' + String(c.id).padStart(4, '0')]];
+  const similar = CARS.filter(x => x.id !== c.id && (x.brand === c.brand || x.body === c.body)).slice(0, 3);
+  const monthly = (c.price * .8 * (0.07 / 12)) / (1 - Math.pow(1 + 0.07 / 12, -60));
+  root.innerHTML = `
+  <div class="crumbs" style="padding-top:28px"><a href="index.html">Начало</a> / <a href="cars.html">Автомобили</a> / ${c.brand} ${c.model}</div>
+  <div class="detail">
+    <div>
+      <h1 style="margin-bottom:16px">${c.brand} ${c.model}</h1>
+      <div class="gallery">${carSVG(c, true)}${c.tag ? `<span class="badge">${c.tag}</span>` : ''}</div>
+      <div class="panel" style="margin-top:20px"><h3 style="margin-bottom:12px">Технически данни</h3>
+        <div class="specs">${spec.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div></div>
+      <div class="panel"><h3 style="margin-bottom:12px">Екипировка</h3><ul class="tags">${c.features.map(f => `<li>${f}</li>`).join('')}</ul></div>
+      <div class="panel"><h3 style="margin-bottom:8px">Описание</h3><p class="sub">${c.desc}</p></div>
+    </div>
+    <aside class="sticky">
+      <div class="panel">
+        <div class="note">Цена с ДДС</div>
+        <div class="big-price">${money(c.price)}</div>
+        <div class="note">от ~${money(Math.round(monthly))} / месец при лизинг (20% самоучастие, 60 мес., ориентировъчно)</div>
+        <div class="actions">
+          <a class="btn primary" href="tel:${SITE.phone.replace(/\s/g, '')}">Обади се</a>
+          <button class="btn fav-btn" data-fav="${c.id}" type="button">${on ? '♥ В любими' : '♡ Запази'}</button>
+        </div>
+        <div class="actions" style="margin-top:10px"><a class="btn" href="finance.html?price=${c.price}">Калкулатор</a><button class="btn" onclick="print()" type="button">Принтирай</button></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-bottom:12px">Запитване за този автомобил</h3>
+        <form class="stack" data-form>
+          <input name="name" placeholder="Име" required autocomplete="name">
+          <input name="phone" type="tel" placeholder="Телефон" required autocomplete="tel">
+          <textarea name="msg">Интересувам се от ${c.brand} ${c.model} (${c.year}).</textarea>
+          <button class="btn primary block" type="submit">Изпрати</button>
+          <p class="note">Ще се свържем с вас в рамките на работния ден.</p>
+        </form>
+        <div class="form-ok" hidden><b>Благодарим ви!</b>Получихме запитването и ще се свържем с вас скоро.</div>
+      </div>
+    </aside>
+  </div>
+  <section class="section" style="padding-top:20px"><div class="head"><h2 class="title">Подобни автомобили</h2></div>
+    <div class="cards">${similar.map(cardHTML).join('')}</div></section>`;
+  $('.fav-btn').addEventListener('click', e => { setTimeout(() => e.target.textContent = favs.has(c.id) ? '♥ В любими' : '♡ Запази'); });
+})();
+</script>
+</body>
+</html>
