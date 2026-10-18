@@ -127,6 +127,19 @@ export async function carapisPreview(size = 2) {
   return { status: res.status, body: `${summary}\n\n${body}`.slice(0, 8000) };
 }
 
+/** Диагностика: взима от Carapis страницата на конкретна обява (по ID при доставчика) и показва колко снимки е намерено. */
+export async function carapisProbe(sourceId: string) {
+  const res = await fetch(`${baseUrl()}/vehicles/${encodeURIComponent(sourceId)}/`, { headers: headers(), signal: AbortSignal.timeout(20_000) });
+  const body = await res.text();
+  let found = 0;
+  try {
+    found = deepImageUrls(JSON.parse(body)).length;
+  } catch {
+    /* не е JSON */
+  }
+  return { status: res.status, found, body: body.slice(0, 6000) };
+}
+
 export const carapis: ProviderAdapter = {
   id: 'ENCAR',
   name: 'Carapis',
@@ -156,7 +169,7 @@ export const carapis: ProviderAdapter = {
       page++;
     }
     // Ако списъкът не съдържа снимки, взема ги от страницата на самата обява (ограничено на синхронизация, за да не се изчерпва лимитът)
-    let budget = Number(process.env.CARAPIS_DETAIL_LIMIT ?? 25);
+    let budget = Number(process.env.CARAPIS_DETAIL_LIMIT ?? 50);
     for (const v of out) {
       if (v.images.length || budget <= 0) continue;
       budget--;

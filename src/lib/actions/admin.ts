@@ -136,6 +136,20 @@ export async function runSync(): Promise<FormState> {
   revalidatePath('/admin/vehicles');
   return { ok: true, message: rep.map((r) => `${r.provider}: ${r.status === 'ok' ? `${r.count} обяви` : r.message}`).join(' · ') };
 }
+export async function probeMissingPhotos(): Promise<FormState> {
+  await staff();
+  try {
+    const [withPhotos, total] = await Promise.all([db.vehicle.count({ where: { isDemo: false, sourceId: { not: null }, images: { some: {} } } }), db.vehicle.count({ where: { isDemo: false, sourceId: { not: null } } })]);
+    const v = await db.vehicle.findFirst({ where: { isDemo: false, sourceId: { not: null }, images: { none: {} } }, select: { sourceId: true, make: true, model: true } });
+    const head = `Внесени обяви: ${total}, със снимки: ${withPhotos}, без снимки: ${total - withPhotos}.`;
+    if (!v?.sourceId) return { ok: true, message: `${head}\nВсички обяви имат снимки.` };
+    const { carapisProbe } = await import('@/lib/providers/carapis');
+    const r = await carapisProbe(v.sourceId);
+    return { ok: true, message: `${head}\nОбява без снимки: ${v.make} ${v.model} (ID ${v.sourceId}). Отговор HTTP ${r.status}, намерени снимки: ${r.found}.\n\n${r.body}` };
+  } catch (e) {
+    return fail(e);
+  }
+}
 export async function publishAllVehicles(): Promise<FormState> {
   await staff();
   const r = await db.vehicle.updateMany({ where: { published: false }, data: { published: true } });
