@@ -4,8 +4,8 @@ import { getSiteInfo } from '@/lib/site';
 
 const cols = [
   { title: 'Автомобили', links: [['/catalog', 'Всички автомобили'], ['/catalog?saleType=BUY_NOW', 'Фиксирана цена'], ['/find-my-car', 'Намери моя автомобил'], ['/compare', 'Сравнение']] },
-  { title: 'Услуги', links: [['/calculator', 'Калкулатор за внос'], ['/vin-check', 'VIN проверка'], ['/tracking', 'Проследяване'], ['/how-it-works', 'Как работи']] },
-  { title: 'Внос', links: [['/import/south-korea', 'От Южна Корея'], ['/how-it-works', 'Как работи'], ['/deliveries', 'Реализирани доставки']] },
+  { title: 'Услуги', links: [['/find-my-car', 'Намери моя автомобил'], ['/compare', 'Сравнение'], ['/how-it-works', 'Как работи'], ['/faq', 'Въпроси']] },
+  { title: 'Внос', links: [['/import/south-korea', 'От Южна Корея'], ['/deliveries', 'Реализирани доставки']] },
   { title: 'Компания', links: [['/about', 'За нас'], ['/reviews', 'Отзиви'], ['/blog', 'Блог'], ['/faq', 'Въпроси'], ['/contact', 'Контакти']] },
 ];
 
@@ -16,11 +16,10 @@ export async function SiteFooter() {
       <div className="container-x grid gap-12 py-16 lg:grid-cols-[1.3fr_2fr]">
         <div>
           <Logo light />
-          <p className="mt-5 max-w-sm text-sm leading-6">Внос на автомобили от Южна Корея — с ясна разбивка на цената, внимателна селекция и проследяване на всеки етап.</p>
+          <p className="mt-5 max-w-sm text-sm leading-6">Внос на автомобили от Южна Корея — с ясна цена, внимателна селекция и личен консултант.</p>
           <address className="mt-6 space-y-1 text-sm not-italic">
             <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="block text-white hover:text-copper-300">{site.phone}</a>
             <a href={`mailto:${site.email}`} className="block hover:text-white">{site.email}</a>
-            <span className="block">{site.address}</span>
             <span className="block">{site.hours}</span>
           </address>
         </div>

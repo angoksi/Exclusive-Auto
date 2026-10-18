@@ -52,15 +52,15 @@ export default async function Home() {
           <Reveal>
             <p className="eyebrow !text-copper-300">Внос от Южна Корея</p>
             <h1 className="mt-5 max-w-3xl text-[40px] font-extrabold leading-[1.05] !text-white sm:text-6xl lg:text-7xl">Твоят следващ автомобил. <span className="text-copper-300">Без граници.</span></h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-white/75">Внасяме автомобили от Южна Корея — с ясна разбивка на цената, личен консултант и проследяване на всеки етап до предаването.</p>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-white/75">Внасяме автомобили от Южна Корея — с ясна цена, личен консултант и подкрепа на всеки етап до предаването.</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild variant="copper" size="lg"><Link href="/catalog">Разгледай автомобили</Link></Button>
-              <Button asChild variant="light" size="lg"><Link href="/calculator">Получаване на оферта</Link></Button>
+              <Button asChild variant="light" size="lg"><Link href="/find-my-car">Получаване на оферта</Link></Button>
             </div>
           </Reveal>
           <Reveal delay={0.15} className="mt-14 lg:mt-20"><HeroSearch makeModels={makeModels} /></Reveal>
           <dl className="mt-8 grid max-w-3xl grid-cols-3 gap-6 text-white">
-            {[[String(counts), 'автомобила в каталога'], ['KR', 'директен внос от Корея'], ['10', 'етапа на проследяване']].map(([n, l]) => (
+            {[[String(counts), 'автомобила в каталога'], ['KR', 'директен внос от Корея'], ['6', 'стъпки до ключовете']].map(([n, l]) => (
               <div key={l}><dt className="text-3xl font-extrabold text-copper-300">{n}</dt><dd className="mt-1 text-xs text-white/60 sm:text-sm">{l}</dd></div>
             ))}
           </dl>
@@ -179,7 +179,7 @@ export default async function Home() {
             <p className="eyebrow">Контакт</p>
             <h2 className="mt-2 text-3xl sm:text-4xl">Разкажете ни какво търсите</h2>
             <p className="mt-3 max-w-md text-muted">Оставете запитване и консултант ще ви предложи конкретни автомобили с пълна разбивка на цената.</p>
-            <ul className="mt-8 space-y-2 text-sm"><li><strong className="text-navy-900">{site.phone}</strong></li><li>{site.email}</li><li>{site.address}</li><li className="text-muted">{site.hours}</li></ul>
+            <ul className="mt-8 space-y-2 text-sm"><li><strong className="text-navy-900">{site.phone}</strong></li><li>{site.email}</li><li className="text-muted">{site.hours}</li></ul>
           </div>
           <div className="card p-7"><InquiryForm type="CONTACT" user={user} submitLabel="Изпрати" /></div>
         </div>

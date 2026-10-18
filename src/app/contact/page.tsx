@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Clock, Mail, MapPin, Phone } from 'lucide-react';
+import { Clock, Mail, Phone } from 'lucide-react';
 import { InquiryForm } from '@/components/inquiry-form';
 import { PageHero } from '@/components/page-hero';
 import { getUser } from '@/lib/auth';
@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Контакти', description: 'С�
 
 export default async function Contact() {
   const [user, site] = await Promise.all([getUser(), getSiteInfo()]);
-  const items = [[Phone, 'Телефон', site.phone, `tel:${site.phone.replace(/\s/g, '')}`], [Mail, 'Имейл', site.email, `mailto:${site.email}`], [MapPin, 'Адрес', site.address, null], [Clock, 'Работно време', site.hours, null]] as const;
+  const items = [[Phone, 'Телефон', site.phone, `tel:${site.phone.replace(/\s/g, '')}`], [Mail, 'Имейл', site.email, `mailto:${site.email}`], [Clock, 'Работно време', site.hours, null]] as const;
   return (
     <>
       <PageHero eyebrow="Контакти" title="Нека поговорим за вашия автомобил" text="Отговаряме в рамките на работния ден." />

@@ -12,7 +12,7 @@ const nav = [
   { href: '/compare', label: 'Сравнение', icon: GitCompareArrows },
   { href: '/account/inquiries', label: 'Запитвания', icon: Inbox },
   { href: '/account/offers', label: 'Оферти', icon: Tag },
-  { href: '/account/orders', label: 'Поръчки и проследяване', icon: Package },
+  { href: '/account/orders', label: 'Поръчки', icon: Package },
   { href: '/account/documents', label: 'Документи', icon: FileText },
   { href: '/account/searches', label: 'Запазени търсения', icon: Bookmark },
   { href: '/account/notifications', label: 'Известия', icon: Bell },

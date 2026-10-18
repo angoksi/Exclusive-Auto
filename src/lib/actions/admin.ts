@@ -287,7 +287,7 @@ export async function deleteDelivery(id: string) { await staff(); await db.compl
 
 export async function saveSite(_: FormState, fd: FormData): Promise<FormState> {
   await admin();
-  const p = z.object({ phone: z.string().trim().min(5).max(40), email: z.string().trim().email(), address: z.string().trim().min(3).max(160), hours: z.string().trim().min(3).max(80) }).safeParse(Object.fromEntries(fd));
+  const p = z.object({ phone: z.string().trim().min(5).max(40), email: z.string().trim().email(), hours: z.string().trim().min(3).max(80) }).safeParse(Object.fromEntries(fd));
   if (!p.success) return { errors: zodErrors(p.error.issues) };
   await db.setting.upsert({ where: { key: 'site' }, update: { value: p.data }, create: { key: 'site', value: p.data } });
   revalidatePath('/', 'layout');
@@ -326,7 +326,7 @@ export async function savePricing(_: FormState, fd: FormData): Promise<FormState
     const parsed = pricingSchema.safeParse(next);
     if (!parsed.success) return { error: 'Невалидна конфигурация: ' + parsed.error.issues.map((i) => `${i.path.join('.')} — ${i.message}`).slice(0, 3).join('; ') };
     await db.setting.upsert({ where: { key: 'pricing' }, update: { value: parsed.data }, create: { key: 'pricing', value: parsed.data } });
-    revalidatePath('/calculator'); revalidatePath('/', 'layout');
+    revalidatePath('/', 'layout');
     return { ok: true, message: 'Конфигурацията е запазена. Използвайте „Преизчисли цените“, за да обновите EUR цените на обявите.' };
   } catch (e) {
     return { error: e instanceof SyntaxError ? 'Невалиден JSON в едно от полетата.' : 'Невалидни данни.' };

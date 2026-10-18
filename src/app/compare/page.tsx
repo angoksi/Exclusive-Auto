@@ -6,8 +6,6 @@ import { VehicleCard } from '@/components/vehicle-card';
 import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
 import { getCompareSlugs } from '@/lib/compare';
-import { getPricing } from '@/lib/pricing-server';
-import { calculateImport, platformKeyFor } from '@/lib/pricing';
 import { cardInclude } from '@/lib/vehicles';
 import { CONDITION_LABEL, REGION_LABEL, SALE_LABEL, dateBg, eur, kmToMi, num } from '@/lib/format';
 
@@ -15,7 +13,7 @@ export const metadata: Metadata = { title: 'Сравнение на автомо
 
 export default async function ComparePage() {
   const slugs = await getCompareSlugs();
-  const [config, found] = await Promise.all([getPricing(), db.vehicle.findMany({ where: { slug: { in: slugs }, published: true }, include: { images: { orderBy: { position: 'asc' }, take: 1 } } })]);
+  const [found] = await Promise.all([db.vehicle.findMany({ where: { slug: { in: slugs }, published: true }, include: { images: { orderBy: { position: 'asc' }, take: 1 } } })]);
   const vehicles = slugs.map((s) => found.find((v) => v.slug === s)).filter((v): v is NonNullable<typeof v> => !!v);
 
   if (vehicles.length === 0)
@@ -26,12 +24,6 @@ export default async function ComparePage() {
         <Button asChild className="mt-8"><Link href="/catalog">Към каталога</Link></Button>
       </div>
     );
-
-  const totals = vehicles.map((v) => {
-    const native = (v.saleType === 'BUY_NOW' ? v.buyNowPrice : v.currentBid) ?? v.buyNowPrice ?? v.currentBid ?? 0;
-    return calculateImport({ region: 'KR', price: native, currency: v.currency, platform: platformKeyFor(v.source, v.region), destination: 'varna', insurance: true, originProof: true, extras: [] }, config).total;
-  });
-  const best = Math.min(...totals);
 
   const rows: [string, (v: (typeof vehicles)[number], i: number) => React.ReactNode][] = [
     ['Държава', (v) => REGION_LABEL[v.region]],
@@ -49,18 +41,17 @@ export default async function ComparePage() {
     ['Тип продажба', (v) => SALE_LABEL[v.saleType]],
     ['Дата на търга', (v) => dateBg(v.auctionDate)],
     ['Цена на автомобила', (v) => (v.priceEur ? eur(v.priceEur) : '—')],
-    ['Прогнозна крайна цена до България', (_, i) => <span className={totals[i] === best && vehicles.length > 1 ? 'font-extrabold text-ok' : 'font-extrabold'}>{eur(totals[i])}</span>],
   ];
 
-  // алтернативи според бюджета
-  const avg = totals.reduce((a, b) => a + b, 0) / totals.length;
-  const alts = await db.vehicle.findMany({ where: { published: true, status: 'AVAILABLE', slug: { notIn: slugs }, priceEur: { gte: Math.round(avg * 0.25), lte: Math.round(avg * 0.7) } }, take: 3, orderBy: { year: 'desc' }, include: cardInclude });
+  // алтернативи в по-нисък бюджет
+  const avg = vehicles.reduce((a, v) => a + v.priceEur, 0) / vehicles.length;
+  const alts = await db.vehicle.findMany({ where: { published: true, status: 'AVAILABLE', slug: { notIn: slugs }, priceEur: { gte: Math.round(avg * 0.4), lte: Math.round(avg * 0.9) } }, take: 3, orderBy: { year: 'desc' }, include: cardInclude });
 
   return (
     <div className="container-x py-12">
       <p className="eyebrow">Сравнение</p>
       <h1 className="mt-2 text-3xl sm:text-4xl">Сравнение на автомобили</h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted">Прогнозната крайна цена включва аукционни такси, транспорт до Варна, застраховка, мито, ДДС, такси и комисиона. Ориентировъчна оценка.</p>
+      <p className="mt-2 max-w-2xl text-sm text-muted">Цените са без разходите по вноса. За пълна оферта се свържете с консултант.</p>
       <div className="card mt-8 overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>

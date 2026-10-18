@@ -27,7 +27,7 @@ export default async function MarketPage({ params }: P) {
       <PageHero eyebrow="Внос" title={m.title} text={m.intro}>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button asChild variant="copper" size="lg"><Link href={`/catalog?region=${m.region.toLowerCase()}`}>Автомобили от {m.short}</Link></Button>
-          <Button asChild variant="outline" size="lg"><Link href="/calculator">Калкулатор</Link></Button>
+          <Button asChild variant="outline" size="lg"><Link href="/find-my-car">Намери моя автомобил</Link></Button>
         </div>
       </PageHero>
       <section className="section">
@@ -40,7 +40,7 @@ export default async function MarketPage({ params }: P) {
           <dl className="card divide-y divide-line">
             <div className="p-6"><dt className="text-xs font-semibold uppercase tracking-wider text-muted">Платформи</dt><dd className="mt-1 font-bold text-navy-900">{m.platforms}</dd></div>
             <div className="p-6"><dt className="text-xs font-semibold uppercase tracking-wider text-muted">Ориентировъчен срок</dt><dd className="mt-1 text-2xl font-extrabold text-navy-900">{m.time}</dd></div>
-            <div className="p-6"><dt className="text-xs font-semibold uppercase tracking-wider text-muted">Процес</dt><dd className="mt-1 text-sm text-ink/75">{PROCESS.length} стъпки · проследяване на всеки етап</dd></div>
+            <div className="p-6"><dt className="text-xs font-semibold uppercase tracking-wider text-muted">Процес</dt><dd className="mt-1 text-sm text-ink/75">{PROCESS.length} стъпки до предаването</dd></div>
           </dl>
         </div>
       </section>

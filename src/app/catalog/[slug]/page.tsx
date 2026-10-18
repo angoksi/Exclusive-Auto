@@ -1,20 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Anchor, Calculator, Check, KeyRound, Phone, ShieldAlert, Ship, X } from 'lucide-react';
+import { Anchor, Check, KeyRound, Phone, ShieldAlert, Ship, X } from 'lucide-react';
 import { Gallery } from '@/components/gallery';
 import { FavoriteButton } from '@/components/favorite-button';
 import { CompareButton } from '@/components/compare-button';
 import { InquiryForm } from '@/components/inquiry-form';
-import { ImportCalculator } from '@/components/import-calculator';
 import { VehicleCard } from '@/components/vehicle-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
 import { getUser } from '@/lib/auth';
 import { getFavoriteIds } from '@/lib/favorites';
-import { getPricing } from '@/lib/pricing-server';
-import { platformKeyFor } from '@/lib/pricing';
 import { getSiteInfo, SITE_NAME, SITE_URL } from '@/lib/site';
 import { cardInclude } from '@/lib/vehicles';
 import { CONDITION_LABEL, REGION_LABEL, SALE_LABEL, SOURCE_LABEL, STATUS_LABEL, dateBg, eur, kmToMi, money, num } from '@/lib/format';
@@ -42,7 +39,7 @@ export default async function VehiclePage({ params }: P) {
   const { slug } = await params;
   const v = await load(slug);
   if (!v) notFound();
-  const [user, favs, config, site] = await Promise.all([getUser(), getFavoriteIds(), getPricing(), getSiteInfo()]);
+  const [user, favs, site] = await Promise.all([getUser(), getFavoriteIds(), getSiteInfo()]);
   const similar = await db.vehicle.findMany({
     where: { published: true, status: 'AVAILABLE', id: { not: v.id }, region: v.region, priceEur: { gte: Math.round(v.priceEur * 0.6), lte: Math.round(v.priceEur * 1.5) }, OR: [{ bodyType: v.bodyType }, { make: v.make }] },
     orderBy: { year: 'desc' }, take: 3, include: cardInclude,
@@ -103,7 +100,7 @@ export default async function VehiclePage({ params }: P) {
 
           <nav className="sticky top-[68px] z-20 -mx-4 overflow-x-auto border-y border-line bg-cream/95 px-4 backdrop-blur sm:top-[104px] lg:mx-0 lg:px-0" aria-label="Секции">
             <ul className="flex gap-6 whitespace-nowrap text-sm font-semibold">
-              {[['specs', 'Характеристики'], ['condition', 'Състояние'], ['history', 'История'], ['price', 'Крайна цена'], ['delivery', 'Доставка'], ['similar', 'Подобни']].map(([id, l]) => (
+              {[['specs', 'Характеристики'], ['condition', 'Състояние'], ['history', 'История'], ['delivery', 'Доставка'], ['similar', 'Подобни']].map(([id, l]) => (
                 <li key={id}><a href={`#${id}`} className="block border-b-2 border-transparent py-3.5 text-navy-900/70 hover:border-copper-600 hover:text-navy-900">{l}</a></li>
               ))}
             </ul>
@@ -158,19 +155,6 @@ export default async function VehiclePage({ params }: P) {
             ) : (
               <p className="mt-4 text-sm text-muted">Няма налична история за този автомобил.</p>
             )}
-            <p className="mt-4 text-sm">За пълен доклад използвайте <Link href={`/vin-check${v.vin ? `?vin=${v.vin}` : ''}`} className="link-arrow">VIN проверка →</Link></p>
-          </section>
-
-          <section id="price" className="scroll-mt-40">
-            <h2 className="text-2xl">Изчисляване на крайна цена</h2>
-            <p className="mt-2 text-sm text-muted">Предварително попълнено с цената на този автомобил. Променяйте всяка стойност.</p>
-            <div className="mt-6">
-              <ImportCalculator
-                config={config}
-                user={user}
-                preset={{ price: native ?? 0, currency: v.currency, platform: platformKeyFor(v.source, v.region), vehicleSlug: v.slug, vehicleTitle: `${v.year} ${title}` }}
-              />
-            </div>
           </section>
 
           <section id="delivery" className="scroll-mt-40">
@@ -182,7 +166,7 @@ export default async function VehiclePage({ params }: P) {
                   <li key={s.n} className="flex gap-3 text-sm"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-navy-900 text-[11px] font-bold text-white">{s.n}</span><span className="text-ink/80">{s.title}</span></li>
                 ))}
               </ol>
-              <p className="mt-5 flex items-start gap-2 text-xs text-muted"><Anchor className="mt-0.5 size-4 shrink-0" />Сроковете зависят от графика на корабите и митническата обработка. След покупка проследявате всеки етап в раздел „Проследяване“.</p>
+              <p className="mt-5 flex items-start gap-2 text-xs text-muted"><Anchor className="mt-0.5 size-4 shrink-0" />Сроковете зависят от графика на корабите и митническата обработка. Консултантът ви информира на всеки етап.</p>
             </div>
           </section>
 
@@ -201,12 +185,11 @@ export default async function VehiclePage({ params }: P) {
               <p className="mt-1 text-4xl font-extrabold tracking-tight text-navy-900">{v.priceEur ? eur(v.priceEur) : 'По запитване'}</p>
               {native != null && v.currency !== 'EUR' && <p className="text-sm text-muted">{money(native, v.currency)}</p>}
               {v.buyNowPrice != null && v.currentBid != null && <p className="mt-2 text-sm text-ink/80">Фиксирана цена: <strong>{money(v.buyNowPrice, v.currency)}</strong></p>}
-              <p className="mt-2 text-xs text-muted">Цената е без разходите по вноса. Вижте <a href="#price" className="font-semibold text-copper-700 underline">крайната цена до България</a>.</p>
+              <p className="mt-2 text-xs text-muted">Цената е без разходите по вноса. Консултант ще изготви пълна оферта за доставка до България.</p>
               {v.auctionDate && <p className="mt-4 rounded-md bg-mist px-3 py-2 text-sm"><span className="text-muted">Дата на търга:</span> <strong>{dateBg(v.auctionDate, true)}</strong></p>}
             </div>
             <div className="grid gap-2.5 border-t border-line bg-cream/50 p-6">
-              <Button asChild variant="copper" size="lg"><a href="#price"><Calculator /> Изчисли доставка</a></Button>
-              <Button asChild size="lg"><a href="#inquiry">Направи запитване</a></Button>
+              <Button asChild variant="copper" size="lg"><a href="#inquiry">Направи запитване</a></Button>
               <div className="grid grid-cols-2 gap-2.5">
                 <FavoriteButton vehicleId={v.id} initial={favs.has(v.id)} variant="full" />
                 <CompareButton slug={v.slug} variant="full" />

@@ -7,9 +7,6 @@ import { getCompareSlugs } from '@/lib/compare';
 import { getSiteInfo } from '@/lib/site';
 
 const links = [
-  { href: '/calculator', label: 'Калкулатор' },
-  { href: '/vin-check', label: 'VIN проверка' },
-  { href: '/tracking', label: 'Проследяване' },
   { href: '/how-it-works', label: 'Как работи' },
   { href: '/blog', label: 'Блог' },
   { href: '/contact', label: 'Контакти' },
@@ -27,7 +24,7 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
       <div className="hidden bg-navy-900 text-[12.5px] text-white/80 md:block">
         <div className="container-x flex h-9 items-center justify-between">
-          <span>Директен внос от Южна Корея — с прозрачна цена и проследяване</span>
+          <span>Директен внос от Южна Корея — с прозрачна цена и личен консултант</span>
           <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 hover:text-white">
             <Phone className="size-3.5" /> {site.phone} · {site.hours}
           </a>

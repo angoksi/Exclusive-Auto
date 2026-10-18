@@ -46,7 +46,7 @@ export default async function AdminContent() {
       {user.role === 'ADMIN' && (
         <section className="card max-w-2xl p-6"><h2 className="mb-4 text-lg">Контактна информация</h2>
           <ActionForm action={saveSite}><>
-            <div className="grid gap-3 sm:grid-cols-2"><Field label="Телефон" name="phone"><Input name="phone" defaultValue={site.phone} required /></Field><Field label="Имейл" name="email"><Input name="email" type="email" defaultValue={site.email} required /></Field><Field label="Адрес"><Input name="address" defaultValue={site.address} required /></Field><Field label="Работно време"><Input name="hours" defaultValue={site.hours} required /></Field></div></></ActionForm></section>
+            <div className="grid gap-3 sm:grid-cols-2"><Field label="Телефон" name="phone"><Input name="phone" defaultValue={site.phone} required /></Field><Field label="Имейл" name="email"><Input name="email" type="email" defaultValue={site.email} required /></Field><Field label="Работно време"><Input name="hours" defaultValue={site.hours} required /></Field></div></></ActionForm></section>
       )}
       <section className="space-y-4"><h2 className="text-xl">Отзиви</h2>
         <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">Публикувайте само истински отзиви с разрешение на авторите. Примерните отзиви трябва да са маркирани като „Примерен“.</p>

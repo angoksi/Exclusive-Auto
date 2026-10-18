@@ -5,14 +5,14 @@ import { db } from '@/lib/db';
 import { stageTitle } from '@/lib/stages';
 import { dateBg } from '@/lib/format';
 
-export const metadata = { title: 'Поръчки и проследяване' };
+export const metadata = { title: 'Поръчки' };
 
 export default async function Orders() {
   const user = await requireUser('/account/orders');
   const rows = await db.order.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } });
   return (
     <div>
-      <h1 className="text-3xl">Поръчки и проследяване</h1>
+      <h1 className="text-3xl">Поръчки</h1>
       <div className="mt-6 space-y-3">
         {rows.length === 0 && <p className="card p-8 text-center text-sm text-muted">Нямате поръчки.</p>}
         {rows.map((o) => (
