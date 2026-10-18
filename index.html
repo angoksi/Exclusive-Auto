@@ -14,24 +14,23 @@
 <header id="site-header"></header>
 <main>
   <section class="hero">
-    <div class="wrap">
-      <div class="hero-grid">
-        <div>
-          <span class="eyebrow">Exclusive Auto Trade</span>
-          <h1>Автомобилът, който <em>заслужавате</em></h1>
-          <p class="sub">Внимателно подбрани автомобили с проверена история и реален пробег. Прозрачни цени и пълна подкрепа при покупка.</p>
-          <div class="hero-actions">
-            <a class="btn primary" href="cars.html">Разгледай автомобили</a>
-            <a class="btn" href="contact.html">Свържи се с нас</a>
-          </div>
-          <div class="stats">
-            <div><b>12+</b><span>автомобила в наличност</span></div>
-            <div><b>100%</b><span>проверена история</span></div>
-            <div><b>Гаранция</b><span>на всеки автомобил</span></div>
-          </div>
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <span class="eyebrow">Exclusive Auto Trade</span>
+        <h1>Автомобилът, който <em>заслужавате</em></h1>
+        <p class="sub">Внимателно подбрани автомобили с проверена история и реален пробег. Прозрачни цени и пълна подкрепа при покупка.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="cars.html">Разгледай автомобили</a>
+          <a class="btn glass" href="contact.html">Свържи се с нас</a>
         </div>
-        <div class="hero-art" id="hero-art"></div>
+        <div class="stats">
+          <div><b>12+</b><span>автомобила в наличност</span></div>
+          <div><b>100%</b><span>проверена история</span></div>
+          <div><b>Гаранция</b><span>на всеки автомобил</span></div>
+        </div>
       </div>
+    </div>
+    <div class="wrap">
       <div class="searchbox">
         <form id="quick" action="cars.html" method="get">
           <div><label for="q-brand">Марка</label><select id="q-brand" name="brand"><option value="">Всички</option></select></div>
@@ -44,7 +43,6 @@
       </div>
     </div>
   </section>
-  <div class="after-search"></div>
 
   <section class="section">
     <div class="wrap">
@@ -113,7 +111,6 @@
   const brands = uniq('brand');
   $('#brands').innerHTML = brands.map(b => `<a href="cars.html?brand=${encodeURIComponent(b)}">${b}<small>${CARS.filter(c => c.brand === b).length} обяви</small></a>`).join('');
   $('#bodies').innerHTML = uniq('body').map(b => `<a href="cars.html?body=${encodeURIComponent(b)}">${b}</a>`).join('');
-  $('#hero-art').innerHTML = carSVG(CARS[0], true);
 })();
 </script>
 </body>
