@@ -5,7 +5,7 @@ import { ADAPTERS } from './adapters';
 import type { NormalizedVehicle } from './types';
 import type { PricingConfig } from '@/lib/pricing';
 
-export async function upsertNormalized(v: NormalizedVehicle, cfg: PricingConfig, opts: { isDemo?: boolean } = {}) {
+export async function upsertNormalized(v: NormalizedVehicle, cfg: PricingConfig, opts: { isDemo?: boolean; published?: boolean } = {}) {
   const slug = `${slugify(`${v.make}-${v.model}-${v.year}`)}-${slugify(v.sourceId).slice(-10) || Math.random().toString(36).slice(2, 8)}`;
   const { priceEur, bidEur } = toEur(v, cfg);
   const data = {
@@ -24,7 +24,7 @@ export async function upsertNormalized(v: NormalizedVehicle, cfg: PricingConfig,
   }
   const created = await db.vehicle.create({
     data: {
-      ...data, slug,
+      ...data, slug, published: opts.published ?? true,
       images: { create: v.images.map((url, position) => ({ url, position })) },
       history: { create: (v.history ?? []).map((h) => ({ date: h.date, type: h.type, description: h.description, odometerKm: h.odometerKm ?? null, source: h.source ?? null })) },
     },
@@ -40,9 +40,20 @@ export async function syncProviders(cfg: PricingConfig) {
       continue;
     }
     try {
-      const list = await a.fetchListings({ limit: 500 });
-      for (const v of list) await upsertNormalized(v, cfg);
-      report.push({ provider: a.name, status: 'ok', count: list.length });
+      const list = await a.fetchListings();
+      const published = process.env.SYNC_PUBLISH !== 'false'; // SYNC_PUBLISH=false — новите обяви се създават скрити
+      for (const v of list) await upsertNormalized(v, cfg, { published });
+      // Обява, която я няма в пълния списък от доставчика, вече не е налична
+      let archived = 0;
+      if (list.complete && list.length > 0) {
+        const bySource = new Map<string, string[]>();
+        for (const v of list) bySource.set(v.source, [...(bySource.get(v.source) ?? []), v.sourceId]);
+        for (const [source, ids] of bySource) {
+          const r = await db.vehicle.updateMany({ where: { source: source as NormalizedVehicle['source'], isDemo: false, status: 'AVAILABLE', sourceId: { not: null, notIn: ids } }, data: { status: 'ARCHIVED' } });
+          archived += r.count;
+        }
+      }
+      report.push({ provider: a.name, status: 'ok', count: list.length, message: archived ? `Архивирани изчезнали обяви: ${archived}` : undefined });
     } catch (e) {
       report.push({ provider: a.name, status: 'error', message: e instanceof Error ? e.message : String(e) });
     }

@@ -1,4 +1,5 @@
 import { createFeedAdapter } from './feed';
+import { carapis } from './carapis';
 import type { NormalizedVehicle } from './types';
 import type { Condition, Region, SaleType, Source } from '@/generated/prisma/enums';
 
@@ -35,4 +36,4 @@ export const encar = createFeedAdapter<FeedRow>({ id: 'ENCAR', name: 'Encar', re
 export const kcar = createFeedAdapter<FeedRow>({ id: 'KCAR', name: 'K Car', regions: ['KR'], envPrefix: 'KCAR', map: (r) => mapFeed('KCAR', 'KR', 'K Car')(r) });
 export const autowini = createFeedAdapter<FeedRow>({ id: 'AUTOWINI', name: 'Autowini', regions: ['KR'], envPrefix: 'AUTOWINI', map: (r) => mapFeed('AUTOWINI', 'KR', 'Autowini')(r) });
 
-export const ADAPTERS = [encar, kcar, autowini];
+export const ADAPTERS = [carapis, encar, kcar, autowini];

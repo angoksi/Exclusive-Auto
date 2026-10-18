@@ -37,6 +37,9 @@ export type NormalizedVehicle = {
   history?: { date: Date; type: string; description: string; odometerKm?: number; source?: string }[];
 };
 
+/** Списък с обяви; `complete` е true, когато са получени ВСИЧКИ обяви по филтъра (позволява архивиране на изчезналите). */
+export type Listings = NormalizedVehicle[] & { complete?: boolean };
+
 export interface ProviderAdapter {
   id: Source;
   name: string;
@@ -44,7 +47,7 @@ export interface ProviderAdapter {
   /** true, ако има лицензиран достъп (URL + ключ в средата). */
   isConfigured(): boolean;
   /** Извлича обяви от лицензиран API/фийд и ги превръща в общия модел. */
-  fetchListings(opts?: { since?: Date; limit?: number }): Promise<NormalizedVehicle[]>;
+  fetchListings(opts?: { since?: Date; limit?: number }): Promise<Listings>;
 }
 
 export class ProviderNotConfigured extends Error {
