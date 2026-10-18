@@ -173,6 +173,7 @@ export async function carapisPreview(size = 2) {
     const json = JSON.parse(body) as { count?: number; results?: Raw[] } | Raw[];
     const rows = Array.isArray(json) ? json : json.results ?? [];
     const first = rows[0];
+    if (!Array.isArray(json)) summary += ` Полета на отговора: ${Object.keys(json).join(', ')}.`;
     summary += ` Общо по филтъра: ${Array.isArray(json) ? rows.length : json.count ?? '?'}. Платформа на първата: ${first ? sourceCode(first) ?? '?' : '-'}; държава: ${first ? countryIso(first) ?? '?' : '-'}; снимки в списъка: ${first ? photoUrls(first).length : 0}.`;
   } catch {
     /* остава само суровият отговор */
@@ -207,22 +208,32 @@ export const carapis: ProviderAdapter = {
     const max = opts?.limit ?? limitOf(process.env.CARAPIS_MAX_LISTINGS, 200);
     const maxPages = limitOf(process.env.CARAPIS_MAX_PAGES, 100);
     const out: NormalizedVehicle[] = [];
+    const seenIds = new Set<string>();
     let complete = true;
     let page = 1;
+    let seen = 0;
     for (;;) {
       const res = await getPage(page, 50);
+      if (res.status === 404 && page > 1) break; // страница след последната
       if (res.status === 401 || res.status === 403) throw new Error('Carapis: невалиден ключ или няма достъп (' + res.status + ').');
       if (res.status === 429) throw new Error('Carapis: надвишен лимит на заявките (429). Опитайте по-късно.');
       if (!res.ok) throw new Error(`Carapis: HTTP ${res.status}`);
-      const json = (await res.json()) as { results?: Raw[]; next?: string | null } | Raw[];
-      const rows = Array.isArray(json) ? json : json.results ?? [];
-      for (const r of rows) {
+      const json = (await res.json()) as Raw | Raw[];
+      const rows = (Array.isArray(json) ? json : (json.results ?? json.data ?? json.items ?? [])) as Raw[];
+      const fresh = rows.filter((r) => { const k = text(get(r, ['id', 'uuid', 'pk'])); if (!k || seenIds.has(k)) return false; seenIds.add(k); return true; });
+      if (!rows.length || !fresh.length) break; // празна страница или API-то игнорира номера на страницата
+      seen += rows.length;
+      for (const r of fresh) {
         if (!isAllowed(r)) continue; // само Encar и само Южна Корея
         const v = mapCarapis(r);
         if (v && out.length < max) out.push(v);
       }
-      const hasNext = !Array.isArray(json) && Boolean(json.next);
-      if (!rows.length || !hasNext) break;
+      // Има ли още: по общия брой, по поле next, а ако няма нито едното — докато идват обяви
+      const meta = Array.isArray(json) ? {} : json;
+      const total = numeric(meta.count ?? meta.total ?? (meta.pagination as Raw | undefined)?.total ?? (meta.meta as Raw | undefined)?.total);
+      const nextRaw = 'next' in meta ? meta.next : (meta.links as Raw | undefined)?.next ?? (meta.pagination as Raw | undefined)?.next;
+      const more = total !== undefined ? seen < total : nextRaw !== undefined ? Boolean(nextRaw) : !Array.isArray(json);
+      if (!more) break;
       if (out.length >= max || page >= maxPages) { complete = false; break; }
       page++;
     }
