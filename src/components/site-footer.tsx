@@ -1,0 +1,52 @@
+import Link from 'next/link';
+import { Logo } from '@/components/logo';
+import { getSiteInfo } from '@/lib/site';
+
+const cols = [
+  { title: 'Автомобили', links: [['/catalog?region=usca', 'САЩ и Канада'], ['/catalog?region=kr', 'Южна Корея'], ['/find-my-car', 'Намери моя автомобил'], ['/compare', 'Сравнение']] },
+  { title: 'Услуги', links: [['/calculator', 'Калкулатор за внос'], ['/vin-check', 'VIN проверка'], ['/tracking', 'Проследяване'], ['/how-it-works', 'Как работи']] },
+  { title: 'Внос', links: [['/import/usa', 'От САЩ'], ['/import/canada', 'От Канада'], ['/import/south-korea', 'От Южна Корея'], ['/deliveries', 'Реализирани доставки']] },
+  { title: 'Компания', links: [['/about', 'За нас'], ['/reviews', 'Отзиви'], ['/blog', 'Блог'], ['/faq', 'Въпроси'], ['/contact', 'Контакти']] },
+];
+
+export async function SiteFooter() {
+  const site = await getSiteInfo();
+  return (
+    <footer className="bg-navy-950 text-white/70">
+      <div className="container-x grid gap-12 py-16 lg:grid-cols-[1.3fr_2fr]">
+        <div>
+          <Logo light />
+          <p className="mt-5 max-w-sm text-sm leading-6">Внос на автомобили от САЩ, Канада и Южна Корея — с ясна разбивка на цената, внимателна селекция и проследяване на всеки етап.</p>
+          <address className="mt-6 space-y-1 text-sm not-italic">
+            <a href={`tel:${site.phone.replace(/\s/g, '')}`} className="block text-white hover:text-copper-300">{site.phone}</a>
+            <a href={`mailto:${site.email}`} className="block hover:text-white">{site.email}</a>
+            <span className="block">{site.address}</span>
+            <span className="block">{site.hours}</span>
+          </address>
+        </div>
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+          {cols.map((c) => (
+            <div key={c.title}>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-white">{c.title}</h3>
+              <ul className="space-y-2.5 text-sm">
+                {c.links.map(([href, label]) => (
+                  <li key={href}><Link href={href} className="hover:text-white">{label}</Link></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="border-t border-white/10">
+        <div className="container-x flex flex-col gap-3 py-6 text-xs sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} EXCLUSIVE AUTO TRADE. Всички права запазени.</p>
+          <nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label="Правна информация">
+            <Link href="/privacy" className="hover:text-white">Поверителност</Link>
+            <Link href="/terms" className="hover:text-white">Общи условия</Link>
+            <Link href="/cookies" className="hover:text-white">Бисквитки</Link>
+          </nav>
+        </div>
+      </div>
+    </footer>
+  );
+}

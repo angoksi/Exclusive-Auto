@@ -1,1 +1,10 @@
-out/
+node_modules
+.next
+out
+.env
+src/generated
+public/uploads/*
+!public/uploads/.gitkeep
+*.tsbuildinfo
+next-env.d.ts
+uploads/
