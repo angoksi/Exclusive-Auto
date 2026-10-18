@@ -124,31 +124,50 @@ function headers() {
   return { 'X-API-Key': key, Accept: 'application/json' };
 }
 
+// Допълнителни филтри, които API-то може да не приема; при HTTP 400 се махат един по един и се помни кои работят
+const OPTIONAL = ['source_code', 'source', 'available_only'];
+const dropped = new Set<string>();
+
 function pageUrl(page: number, size: number) {
   const u = new URL(`${baseUrl()}/vehicles/`);
   new URLSearchParams(process.env.CARAPIS_QUERY ?? '').forEach((v, k) => u.searchParams.set(k, v));
   u.searchParams.set('page', String(page));
   u.searchParams.set('page_size', String(size));
-  if (!u.searchParams.has('available_only')) u.searchParams.set('available_only', 'true');
+  if (!u.searchParams.has('available_only') && !dropped.has('available_only')) u.searchParams.set('available_only', 'true');
   const src = allowedSources();
   if (src.length === 1) {
-    if (!u.searchParams.has('source')) u.searchParams.set('source', src[0]);
-    if (!u.searchParams.has('source_code')) u.searchParams.set('source_code', src[0]);
+    if (!u.searchParams.has('source') && !dropped.has('source')) u.searchParams.set('source', src[0]);
+    if (!u.searchParams.has('source_code') && !dropped.has('source_code')) u.searchParams.set('source_code', src[0]);
   }
   return u;
 }
 
+/** GET на страница от списъка; при 400 махва по един от допълнителните филтри и опитва пак (без филтър се прави само клиентско филтриране). */
+async function getPage(page: number, size: number, timeout = 30_000): Promise<Response> {
+  const h = headers();
+  for (;;) {
+    const res = await fetch(pageUrl(page, size), { headers: h, signal: AbortSignal.timeout(timeout) });
+    if (res.status !== 400) return res;
+    const next = OPTIONAL.find((k) => !dropped.has(k));
+    if (!next) {
+      const msg = (await res.text()).slice(0, 300);
+      throw new Error(`Carapis: HTTP 400 — ${msg}`);
+    }
+    dropped.add(next);
+    console.warn(`[eat] Carapis върна 400; пробвам без параметър "${next}".`);
+  }
+}
+
 /** Суров отговор (първите няколко обяви) за проверка на формата — вика се от админ панела. */
 export async function carapisPreview(size = 2) {
-  const h = headers();
-  const res = await fetch(pageUrl(1, size), { headers: h, signal: AbortSignal.timeout(20_000) });
+  const res = await getPage(1, size, 20_000);
   const body = await res.text();
-  let summary = '';
+  let summary = dropped.size ? `Не се подават филтри: ${[...dropped].join(', ')} (API-то ги отхвърли).` : '';
   try {
     const json = JSON.parse(body) as { count?: number; results?: Raw[] } | Raw[];
     const rows = Array.isArray(json) ? json : json.results ?? [];
     const first = rows[0];
-    summary = `Общо по филтъра: ${Array.isArray(json) ? rows.length : json.count ?? '?'}. Платформа на първата: ${first ? sourceCode(first) ?? '?' : '-'}; държава: ${first ? countryIso(first) ?? '?' : '-'}; снимки в списъка: ${first ? photoUrls(first).length : 0}.`;
+    summary += ` Общо по филтъра: ${Array.isArray(json) ? rows.length : json.count ?? '?'}. Платформа на първата: ${first ? sourceCode(first) ?? '?' : '-'}; държава: ${first ? countryIso(first) ?? '?' : '-'}; снимки в списъка: ${first ? photoUrls(first).length : 0}.`;
   } catch {
     /* остава само суровият отговор */
   }
@@ -178,13 +197,13 @@ export const carapis: ProviderAdapter = {
   isConfigured: () => Boolean(process.env.CARAPIS_API_KEY),
   fetchImages: fetchCarapisImages,
   async fetchListings(opts) {
-    const h = headers();
+    headers(); // проверка за ключа
     const max = Math.max(1, opts?.limit ?? Number(process.env.CARAPIS_MAX_LISTINGS ?? 200));
     const out: NormalizedVehicle[] = [];
     let complete = true;
     let page = 1;
     for (;;) {
-      const res = await fetch(pageUrl(page, 50), { headers: h, signal: AbortSignal.timeout(30_000) });
+      const res = await getPage(page, 50);
       if (res.status === 401 || res.status === 403) throw new Error('Carapis: невалиден ключ или няма достъп (' + res.status + ').');
       if (res.status === 429) throw new Error('Carapis: надвишен лимит на заявките (429). Опитайте по-късно.');
       if (!res.ok) throw new Error(`Carapis: HTTP ${res.status}`);
