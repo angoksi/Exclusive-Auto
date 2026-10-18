@@ -8,7 +8,7 @@ import type { Source } from '@/generated/prisma/enums';
  *
  * Променливи: CARAPIS_API_KEY (задължителна), CARAPIS_API_URL (по подразбиране https://api.carapis.com/apix/catalog_api),
  * CARAPIS_SOURCE (платформи по source_code, по подразбиране "encar"), CARAPIS_QUERY (допълнителни филтри),
- * CARAPIS_MAX_LISTINGS (по подразбиране 200), CARAPIS_MAX_PAGES (макс. страници по 50 за една синхронизация, по подразбиране 100), CARAPIS_DETAIL_LIMIT (снимки от детайла на обява, по подразбиране 50 на синхронизация).
+ * CARAPIS_MAX_LISTINGS (по подразбиране 200; 0 = без ограничение), CARAPIS_MAX_PAGES (макс. страници по 50 за една синхронизация, по подразбиране 100; 0 = без ограничение), CARAPIS_DETAIL_LIMIT (снимки от детайла на обява, по подразбиране 50 на синхронизация).
  */
 type Raw = Record<string, unknown>;
 
@@ -20,6 +20,12 @@ const GEAR: Record<string, string> = { automatic: 'Автоматична', auto
 const BODY: Record<string, string> = { sedan: 'Седан', suv: 'SUV', hatchback: 'Хечбек', wagon: 'Комби', estate: 'Комби', coupe: 'Купе', convertible: 'Кабрио', cabriolet: 'Кабрио', pickup: 'Пикап', truck: 'Пикап', van: 'Ван', minivan: 'Ван' };
 const COLOR: Record<string, string> = { white: 'Бял', black: 'Черен', gray: 'Сив', grey: 'Сив', silver: 'Сребрист', blue: 'Син', red: 'Червен', green: 'Зелен', beige: 'Бежов', brown: 'Кафяв' };
 const DRIVE: Record<string, string> = { fwd: 'Предно', ff: 'Предно', rwd: 'Задно', fr: 'Задно', awd: '4x4 / AWD', '4wd': '4x4 / AWD', '4x4': '4x4 / AWD' };
+
+/** Число от настройка; 0 или отрицателно = без ограничение. */
+const limitOf = (v: string | undefined, fallback: number) => {
+  const n = Number(v ?? fallback);
+  return Number.isFinite(n) && n > 0 ? n : Infinity;
+};
 
 const get = (o: Raw, keys: string[]): unknown => {
   for (const k of keys) {
@@ -198,7 +204,8 @@ export const carapis: ProviderAdapter = {
   fetchImages: fetchCarapisImages,
   async fetchListings(opts) {
     headers(); // проверка за ключа
-    const max = Math.max(1, opts?.limit ?? Number(process.env.CARAPIS_MAX_LISTINGS ?? 200));
+    const max = opts?.limit ?? limitOf(process.env.CARAPIS_MAX_LISTINGS, 200);
+    const maxPages = limitOf(process.env.CARAPIS_MAX_PAGES, 100);
     const out: NormalizedVehicle[] = [];
     let complete = true;
     let page = 1;
@@ -216,7 +223,7 @@ export const carapis: ProviderAdapter = {
       }
       const hasNext = !Array.isArray(json) && Boolean(json.next);
       if (!rows.length || !hasNext) break;
-      if (out.length >= max || page >= Number(process.env.CARAPIS_MAX_PAGES ?? 100)) { complete = false; break; }
+      if (out.length >= max || page >= maxPages) { complete = false; break; }
       page++;
     }
     return Object.assign(out, { complete }) as Listings;
