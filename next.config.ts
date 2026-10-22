@@ -2,6 +2,8 @@ import type { NextConfig } from 'next';
 
 const config: NextConfig = {
   poweredByHeader: false,
+  // BUILD_STANDALONE=1 — самостоятелна папка за хостинг с cPanel Node.js (в Railway не се ползва)
+  ...(process.env.BUILD_STANDALONE ? { output: 'standalone' as const } : {}),
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
